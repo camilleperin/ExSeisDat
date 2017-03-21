@@ -51,7 +51,6 @@ class InternalSet
     void fillDesc(std::shared_ptr<ExSeisPIOL> piol, std::string pattern);
 
     public :
-
     /*! Constructor
      *  \param[in] piol_ The PIOL object.
      *  \param[in] pattern The file-matching pattern
