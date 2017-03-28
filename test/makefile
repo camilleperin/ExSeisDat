@@ -9,6 +9,7 @@ LIB_IPIOL=ipiol
 LIB_PIOL=piol
 GCOMP=g++
 
+LEVEL=..
 include ../compiler.cfg
 
 #INC_FOLDER=-I../include -I../api $(LOCAL_INC_FOLDER)

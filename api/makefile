@@ -1,5 +1,5 @@
 INC_FOLDER = -I../include
-
+LEVEL=..
 include ../compiler.cfg
 
 #CXXFLAGS = $(CXXSTANDARD) $(WARNINGS) $(DEBUG) $(OPTIMISATIONS) $(INC_FOLDER) $(CUSTOM_FLAGS)

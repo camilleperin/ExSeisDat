@@ -1,6 +1,7 @@
 OBJDIR=obj
 
 #IMELD_FLAG=-Wl,--dynamic-linker=/ichec/home/staff/cathal/env/extract/lib64/ld-linux-x86-64.so.2 
+LEVEL=..
 include ../compiler.cfg
 
 DEP=depend

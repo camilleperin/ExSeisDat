@@ -1,6 +1,7 @@
 LDFLAGS=gmock-all.o  gtest-all.o $(TULLOW_LIBS)
 TEST_FRAM=-I../googletest/googletest/include/ -I../googletest/googlemock/include/
 
+LEVEL=..
 include ../compiler.cfg
 
 .PHONY: all
