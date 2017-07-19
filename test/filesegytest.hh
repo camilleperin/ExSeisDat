@@ -69,11 +69,36 @@ enum TrHdr : size_t
     xl          = 192U
 };
 
-class MockObj : public Obj::Interface
+class MockReadObj : public Obj::ReadInterface
 {
     public :
-    MockObj(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Data::Interface> data_)
-               : Obj::Interface(piol_, name_, data_) {}
+    MockReadObj(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Data::Interface> data_)
+               : Obj::ReadInterface(piol_, name_, data_) {}
+    MOCK_CONST_METHOD0(getFileSz, size_t(void));
+    MOCK_CONST_METHOD1(readHO, void(uchar *));
+    MOCK_CONST_METHOD1(setFileSz, void(csize_t));
+    MOCK_CONST_METHOD1(writeHO, void(const uchar *));
+    MOCK_CONST_METHOD4(readDOMD, void(csize_t, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD4(writeDOMD, void(csize_t, csize_t, csize_t, const uchar *));
+
+    MOCK_CONST_METHOD4(readDODF, void(csize_t, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD4(writeDODF, void(csize_t, csize_t, csize_t, const uchar *));
+    MOCK_CONST_METHOD4(readDO, void(csize_t, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD4(writeDO, void(csize_t, csize_t, csize_t, const uchar *));
+
+    MOCK_CONST_METHOD4(readDO, void(csize_t *, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD4(writeDO, void(csize_t *, csize_t, csize_t, const uchar *));
+    MOCK_CONST_METHOD4(readDODF, void(csize_t *, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD4(writeDODF, void(csize_t *, csize_t, csize_t, const uchar *));
+    MOCK_CONST_METHOD4(readDOMD, void(csize_t *, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD4(writeDOMD, void(csize_t *, csize_t, csize_t, const uchar *));
+};
+
+class MockWriteObj : public Obj::WriteInterface
+{
+    public :
+    MockWriteObj(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Data::Interface> data_)
+               : Obj::WriteInterface(piol_, name_, data_) {}
     MOCK_CONST_METHOD0(getFileSz, size_t(void));
     MOCK_CONST_METHOD1(readHO, void(uchar *));
     MOCK_CONST_METHOD1(setFileSz, void(csize_t));
@@ -100,14 +125,14 @@ struct FileReadSEGYTest : public Test
     Comm::MPI::Opt opt;
     bool testEBCDIC;
     std::string testString = {"This is a string for testing EBCDIC conversion etc."};
-    std::unique_ptr<File::ReadDirect> file;
+    std::unique_ptr<File::ReadSEGY> file;
     std::vector<uchar> tr;
     size_t nt = 40U;
     size_t ns = 200U;
     int inc = 10;
     csize_t format = 5;
     std::vector<uchar> ho;
-    std::shared_ptr<MockObj> mock;
+    std::shared_ptr<MockReadObj> mock;
 
     FileReadSEGYTest()
     {
@@ -128,15 +153,17 @@ struct FileReadSEGYTest : public Test
     {
         if (file.get() != nullptr)
             file.reset();
+    #warning FILL
+/*
         if (OPTS)
         {
             File::ReadSEGY::Opt fopt;
-            Obj::SEGY::Opt oopt;
+            Obj::ReadSEGY::Opt oopt;
             Data::MPIIO::Opt dopt;
-            file = std::make_unique<File::ReadDirect>(piol, name, fopt, oopt, dopt);
+            file = std::make_unique<File::ReadSEGY>(piol, name, fopt, oopt, dopt);
         }
-        else
-            file = std::make_unique<File::ReadDirect>(piol, name);
+        else*/
+            file = std::make_unique<File::ReadSEGY>(piol, name);
 
         piol->isErr();
     }
@@ -147,7 +174,7 @@ struct FileReadSEGYTest : public Test
             file.reset();
         if (mock != nullptr)
             mock.reset();
-        mock = std::make_shared<MockObj>(piol, notFile, nullptr);
+        mock = std::make_shared<MockReadObj>(piol, notFile, nullptr);
         piol->isErr();
         Mock::AllowLeak(mock.get());
 
@@ -179,9 +206,9 @@ struct FileReadSEGYTest : public Test
                                                                        nt*SEGSz::getDOSz(ns)));
         EXPECT_CALL(*mock, readHO(_)).Times(Exactly(1)).WillOnce(SetArrayArgument<0>(ho.begin(), ho.end()));
 
-        auto sfile = std::make_shared<File::ReadSEGY>(piol, notFile, mock);
-        file = std::make_unique<File::ReadDirect>();
-        file->file = std::move(sfile);
+//        auto sfile = std::make_shared<File::ReadSEGY>(piol, notFile, mock);
+        file = std::make_unique<File::ReadSEGY>(piol, notFile, mock);
+//        file->file = std::move(sfile);
     }
 
     void initTrBlock()
@@ -445,15 +472,15 @@ struct FileWriteSEGYTest : public Test
     Comm::MPI::Opt opt;
     bool testEBCDIC;
     std::string testString = {"This is a string for testing EBCDIC conversion etc."};
-    std::unique_ptr<File::WriteDirect> file;
-    std::unique_ptr<File::ReadDirect> readfile;
+    std::unique_ptr<File::WriteSEGY> file;
+    std::unique_ptr<File::ReadSEGY> readfile;
     std::vector<uchar> tr;
     size_t nt = 40U;
     size_t ns = 200U;
     int inc = 10;
     csize_t format = 5;
     std::vector<uchar> ho;
-    std::shared_ptr<MockObj> mock;
+    std::shared_ptr<MockWriteObj> mock;
     std::string name_;
 
     FileWriteSEGYTest()
@@ -479,25 +506,22 @@ struct FileWriteSEGYTest : public Test
 
         File::WriteSEGY::Opt f;
         File::ReadSEGY::Opt rf;
-        Obj::SEGY::Opt o;
+        Obj::WriteSEGY::Opt o;
+        Obj::ReadSEGY::Opt ro;
         Data::MPIIO::Opt d;
         auto data = std::make_shared<Data::MPIIO>(piol, name, d, FileMode::Test);
-        auto obj = std::make_shared<Obj::SEGY>(piol, name, o, data, FileMode::Test);
-
-        auto fi = std::make_shared<File::WriteSEGY>(piol, name, f, obj);
-        file = std::make_unique<File::WriteDirect>();
-        file->file = std::move(fi);
+        auto wobj = std::make_shared<Obj::WriteSEGY>(piol, name, o, data);
+        file = std::make_unique<File::WriteSEGY>(piol, name, f, wobj);
 
         writeHO<false>();
 
-        auto rfi = std::make_shared<File::ReadSEGY>(piol, name, rf, obj);
-        readfile = std::make_unique<File::ReadDirect>();
-        readfile->file = std::move(rfi);
+        auto robj = std::make_shared<Obj::ReadSEGY>(piol, name, ro, data);
+        readfile = std::make_unique<File::ReadSEGY>(piol, name, rf, robj);
 
-        readfile->file->nt = nt;
-        readfile->file->ns = ns;
-        readfile->file->inc = inc;
-        readfile->file->text = testString;
+        readfile->nt = nt;
+        readfile->ns = ns;
+        readfile->inc = inc;
+        readfile->text = testString;
     }
 
     template <bool callHO = true>
@@ -507,13 +531,11 @@ struct FileWriteSEGYTest : public Test
             file.reset();
         if (mock != nullptr)
             mock.reset();
-        mock = std::make_shared<MockObj>(piol, notFile, nullptr);
+        mock = std::make_shared<MockWriteObj>(piol, notFile, nullptr);
         piol->isErr();
         Mock::AllowLeak(mock.get());
 
-        auto sfile = std::make_shared<File::WriteSEGY>(piol, notFile, mock);
-        file = std::make_unique<File::WriteDirect>();
-        file->file = std::move(sfile);
+        file = std::make_unique<File::WriteSEGY>(piol, notFile, mock);
 
         if (callHO)
         {
@@ -522,8 +544,8 @@ struct FileWriteSEGYTest : public Test
         }
         else
         {
-            file->file->nt = nt;
-            file->file->writeNs(ns);
+            file->nt = nt;
+            file->writeNs(ns);
         }
     }
 
@@ -700,7 +722,7 @@ struct FileWriteSEGYTest : public Test
 
         if (MOCK == false)
         {
-            readfile->file->nt = std::max(offset+tn, readfile->file->nt);
+            readfile->nt = std::max(offset+tn, readfile->nt);
             readTraceTest<writePrm>(offset, tn);
         }
     }
@@ -802,7 +824,7 @@ struct FileWriteSEGYTest : public Test
         if (MOCK == false)
         {
             for (size_t i = 0U; i < tn; i++)
-                readfile->file->nt = std::max(offset[i], readfile->file->nt);
+                readfile->nt = std::max(offset[i], readfile->nt);
             readRandomTraceTest<writePrm>(tn, offset);
         }
     }

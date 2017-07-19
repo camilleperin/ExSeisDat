@@ -7,7 +7,7 @@
 #define private public
 #define protected public
 #include "cppfileapi.hh"
-#include "file/file.hh"
+#include "file/filesegy.hh"
 #undef private
 #undef protected
 
@@ -36,7 +36,7 @@ struct FakeReadFile : public File::ReadInterface
     {
         typedef FakeReadFile Type;
     };
-    FakeReadFile(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_) : File::ReadInterface(piol_, name_, obj_)
+    FakeReadFile(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_) : File::ReadInterface(piol_, name_, obj_)
     {
         inc = geom_t(10);
         text = "test";
@@ -59,7 +59,7 @@ struct FakeWriteFile : public File::WriteInterface
     {
         typedef FakeWriteFile Type;
     };
-    FakeWriteFile(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_) : File::WriteInterface(piol_, name_, obj_)
+    FakeWriteFile(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_) : File::WriteInterface(piol_, name_, obj_)
     {
         inc = geom_t(10);
         text = "test";
@@ -91,7 +91,7 @@ void compareConstructor(ExSeisPIOL * piol, FakeReadFile & fake)
 //We test the constructor
 TEST_F(FileTest, Constructor)
 {
-    std::shared_ptr<Obj::Interface> obj = nullptr;
+    std::shared_ptr<Obj::ReadInterface> obj = nullptr;
     FakeReadFile fake(piol, tempFile, obj);
     EXPECT_EQ(nullptr, fake.obj);
     compareConstructor(piol.get(), fake);
@@ -102,8 +102,8 @@ typedef FileTest FileDeathTest;
 //In this test we pass the MPI-IO Data Options class within an invalid name
 TEST_F(FileDeathTest, BadNameConstructor)
 {
-    File::ReadDirect file(piol, notFile);
-    EXPECT_EQ(piol, file->piol);
-    EXPECT_EQ(notFile, file->name);
+    File::ReadSEGY file(piol, notFile);
+    EXPECT_EQ(piol, file.piol);
+    EXPECT_EQ(notFile, file.name);
     EXPECT_EXIT(piol->isErr(), ExitedWithCode(EXIT_FAILURE), ".*8 3 Fatal Error in PIOL. . Dumping Log 0");
 }

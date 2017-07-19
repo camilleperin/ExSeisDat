@@ -41,7 +41,7 @@ using Compare = std::function<bool(const T &, const T &)>;                      
 
 namespace PIOL {
 namespace Data { class Interface; }
-namespace Obj { class Interface; }
+namespace Obj { class ReadInterface; class WriteInterface; }
 namespace File { class ReadInterface; class WriteInterface; }
 }
 #endif

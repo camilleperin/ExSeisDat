@@ -14,6 +14,7 @@
 #include "share/units.hh"
 #include "flow/share.hh"
 #include "flow/cache.hh"
+#include "file/model.hh"
 #include "ops/minmax.hh"
 #include "ops/sort.hh"
 #include "ops/agc.hh"

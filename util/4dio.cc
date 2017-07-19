@@ -11,16 +11,17 @@
 #include "sglobal.hh"
 #include "ops/sort.hh"   //For sort
 #include "share/misc.hh"
+#include "file/filesegy.hh"
 namespace PIOL { namespace FOURD {
 //TODO: Integration candidate
 //TODO: Simple IME optimisation: Contig Read all headers, sort, random write all headers to order, IME shuffle, contig read all headers again
 std::unique_ptr<Coords> getCoords(Piol piol, std::string name, bool ixline)
 {
     auto time = MPI_Wtime();
-    File::ReadDirect file(piol, name);
+    File::ReadSEGY file(piol, name);
     piol->isErr();
 
-    auto dec = decompose(piol.get(), file);
+    auto dec = decompose(piol.get(), &file);
     size_t offset = dec.first;
     size_t lnt = dec.second;
 
@@ -44,7 +45,7 @@ std::unique_ptr<Coords> getCoords(Piol piol, std::string name, bool ixline)
         size_t rblock = (i + max < lnt ? max : lnt - i);
 
         //WARNING: Treat ReadDirect like the internal API for using a non-exposed function
-        file->readParam(offset+i, rblock, &prm, i);
+        file.readParam(offset+i, rblock, &prm, i);
 
         for (size_t j = 0; j < rblock; j++)
             setPrm(i + j, Meta::gtn, offset + i + j, &prm);
@@ -126,8 +127,8 @@ void outputNonMono(Piol piol, std::string dname, std::string sname, vec<size_t> 
     if (printDsr)
         rule->addSEGYFloat(Meta::dsdr, File::Tr::SrcMeas, File::Tr::TimeScal);
 
-    File::ReadDirect src(piol, sname);
-    File::WriteDirect dst(piol, dname);
+    File::ReadSEGY src(piol, sname);
+    File::WriteSEGY dst(piol, dname);
     piol->isErr();
 
     size_t ns = src.readNs();

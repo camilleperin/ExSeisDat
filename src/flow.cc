@@ -19,7 +19,7 @@
 #include "flow/set.hh"
 #include "data/datampiio.hh"
 #include "file/filesegy.hh"
-#include "object/objsegy.hh"
+#include "file/model.hh"
 #include "share/decomp.hh"
 #include "ops/sort.hh"
 #include "ops/gather.hh"
@@ -126,7 +126,7 @@ void Set::summary(void) const
 
 void RadonState::makeState(const std::vector<size_t> & offset, const Uniray<size_t, llint, llint> & gather)
 {
-    std::unique_ptr<File::ReadSEGYModel> vm = File::makeFile<File::ReadSEGYModel>(piol, vmname);   //TODO:DON'T USE MAGIC NAME
+    auto vm = std::make_shared<File::ReadModel<File::ReadSEGY>>(piol, vmname);
     vNs = vm->readNs();
     vInc = vm->readInc();
 

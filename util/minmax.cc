@@ -1,6 +1,7 @@
 #include "sglobal.hh"
 #include "cppfileapi.hh"
 #include "ops/minmax.hh"
+#include "file/filesegy.hh"
 #include <iostream>
 #include <algorithm>
 using namespace PIOL;
@@ -14,9 +15,9 @@ using namespace File;
 void calcMin(std::string iname, std::string oname)
 {
     ExSeis piol;
-    File::ReadDirect in(piol, iname);
+    File::ReadSEGY in(piol, iname);
 
-    auto dec = decompose(piol, in);
+    auto dec = decompose(piol, &in);
     size_t offset = dec.first;
     size_t lnt = dec.second;
 
@@ -62,7 +63,7 @@ void calcMin(std::string iname, std::string oname)
             }
         }
 
-    File::WriteDirect out(piol, oname);
+    File::WriteSEGY out(piol, oname);
     out.writeNt(sz);
     out.writeNs(1U);
     out.writeInc(in.readInc());

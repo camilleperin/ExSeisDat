@@ -13,6 +13,7 @@
 #include <assert.h>
 #include "cppfileapi.hh"
 #include "file/dynsegymd.hh"
+#include "file/filesegy.hh"
 #include "share/segy.hh"
 #include "share/api.hh"
 #include "flow/set.hh"
@@ -39,17 +40,17 @@ struct ParamWrapper
 
 struct ExSeisReadWrapper
 {
-    PIOL::File::ReadDirect * file;
+    File::ReadSEGY * file;
 };
 
 struct ExSeisWriteWrapper
 {
-    PIOL::File::WriteDirect * file;
+    File::WriteSEGY * file;
 };
 
 struct ExSeisSetWrapper
 {
-    PIOL::Set * set;
+    Set * set;
 };
 
 RuleHdl intiRules(bool def)
@@ -190,14 +191,14 @@ size_t getNumRank(ExSeisHandle piol)
 ExSeisWrite openWriteFile(ExSeisHandle piol, const char * name)
 {
     auto wrap = new ExSeisWriteWrapper;
-    wrap->file = new File::WriteDirect(*piol->piol, name);
+    wrap->file = new File::WriteSEGY(*piol->piol, name);
     return wrap;
 }
 
 ExSeisRead openReadFile(ExSeisHandle piol, const char * name)
 {
     auto wrap = new ExSeisReadWrapper;
-    wrap->file = new File::ReadDirect(*piol->piol, name);
+    wrap->file = new File::ReadSEGY(*piol->piol, name);
     return wrap;
 }
 

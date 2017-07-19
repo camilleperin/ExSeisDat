@@ -1,5 +1,5 @@
 #include "objsegytest.hh"
-TEST_F(ObjSpecTest, TestBypassConstructor)
+TEST_F(ReadObjSpecTest, TestBypassConstructor)
 {
     makeSEGY();
     EXPECT_EQ(piol, obj->piol);
@@ -7,46 +7,46 @@ TEST_F(ObjSpecTest, TestBypassConstructor)
     EXPECT_EQ(mock, obj->data);
 }
 
-TEST_F(ObjIntegTest, zeroSEGYFileSize)
+TEST_F(ReadObjIntegTest, zeroSEGYFileSize)
 {
-    makeRealSEGY<false>(zeroFile);
+    makeRealSEGY(zeroFile);
     piol->isErr();
     EXPECT_NE(nullptr, obj->data);
     EXPECT_EQ(0U, obj->getFileSz());
     piol->isErr();
 }
 
-TEST_F(ObjIntegTest, SmallSEGYFileSize)
+TEST_F(ReadObjIntegTest, SmallSEGYFileSize)
 {
-    makeRealSEGY<false>(smallFile);
+    makeRealSEGY(smallFile);
     piol->isErr();
     EXPECT_NE(nullptr, obj->data);
     EXPECT_EQ(smallSize, obj->getFileSz());
     piol->isErr();
 }
 
-TEST_F(ObjIntegTest, BigSEGYFileSize)
+TEST_F(ReadObjIntegTest, BigSEGYFileSize)
 {
-    makeRealSEGY<false>(largeFile);
+    makeRealSEGY(largeFile);
     piol->isErr();
     EXPECT_NE(nullptr, obj->data);
     EXPECT_EQ(largeSize, obj->getFileSz());
     piol->isErr();
 }
 
-TEST_F(ObjSpecTest, ZeroSEGYFileSize)
+TEST_F(ReadObjSpecTest, ZeroSEGYFileSize)
 {
     makeSEGY();
     SEGYFileSizeTest(0U);
 }
 
-TEST_F(ObjSpecTest, SmallSEGYFileSize)
+TEST_F(ReadObjSpecTest, SmallSEGYFileSize)
 {
     makeSEGY();
     SEGYFileSizeTest(40U*prefix(2U));
 }
 
-TEST_F(ObjSpecTest, BigSEGYFileSize)
+TEST_F(ReadObjSpecTest, BigSEGYFileSize)
 {
     makeSEGY();
     SEGYFileSizeTest(8U*prefix(4U));

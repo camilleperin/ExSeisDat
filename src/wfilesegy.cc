@@ -20,13 +20,13 @@ WriteSEGY::Opt::Opt(void)
     incFactor = SI::Micro;
 }
 
-WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, const WriteSEGY::Opt & opt, std::shared_ptr<Obj::Interface> obj_)
+WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, const WriteSEGY::Opt & opt, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
     Init(opt);
 }
 
-WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_)
+WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
     WriteSEGY::Opt opt;
@@ -158,7 +158,7 @@ void WriteSEGY::writeInc(const geom_t inc_)
  *  \param[in] skip Skip \c skip entries in the parameter structure
  */
 template <typename T>
-void writeTraceT(Obj::Interface * obj, csize_t ns, T offset, csize_t sz, trace_t * trc, const Param * prm, csize_t skip)
+void writeTraceT(Obj::WriteInterface * obj, csize_t ns, T offset, csize_t sz, trace_t * trc, const Param * prm, csize_t skip)
 {
     uchar * tbuf = reinterpret_cast<uchar *>(trc);
     if (trc != TRACE_NULL && trc != nullptr)

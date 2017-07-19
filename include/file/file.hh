@@ -11,19 +11,7 @@
 #define PIOLFILE_INCLUDE_GUARD
 #include "global.hh"
 #include "share/param.hh"
-#include "share/uniray.hh"
-namespace PIOL {
-namespace Obj {
-/*! Make the default object layer object.
- * \param[in] piol The piol shared object.
- * \param[in] name The name of the file.
- * \param[in] mode The filemode.
- * \return Return a shared_ptr to the obj layer object.
- * \todo TODO: This hack needs a further tidyup and out of file.hh.
- */
-std::shared_ptr<Obj::Interface> makeDefaultObj(PIOL::Piol piol, std::string name, FileMode mode);
-}
-namespace File {
+namespace PIOL { namespace File {
 extern const trace_t * TRACE_NULL;    //!< The NULL parameter so that the correct internal read pattern is selected
 extern const Param * PARAM_NULL;    //!< The NULL parameter so that the correct internal read pattern is selected
 /*! Class for all file interfaces
@@ -33,7 +21,6 @@ class Interface
     protected :
     Piol piol;                            //!< The PIOL object.
     std::string name;                     //!< Store the file name for debugging purposes.
-    std::shared_ptr<Obj::Interface> obj;  //!< Pointer to the Object-layer object (polymorphic).
     size_t ns;                            //!< The number of samples per trace.
     size_t nt;                            //!< The number of traces.
     std::string text;                     //!< Human readable text extracted from the file
@@ -44,7 +31,7 @@ class Interface
      *  \param[in] name_ The name of the file associated with the instantiation.
      *  \param[in] obj_  Pointer to the Object-layer object (polymorphic).
      */
-    Interface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_) : piol(piol_), name(name_), obj(obj_)
+    Interface(const Piol piol_, const std::string name_) : piol(piol_), name(name_)
     {
     }
 
@@ -62,6 +49,8 @@ class Interface
  */
 class ReadInterface : public Interface
 {
+    protected :
+    std::shared_ptr<Obj::ReadInterface> obj;  //!< Pointer to the Object-layer object (polymorphic).
     public :
 
     /*! \brief The constructor.
@@ -69,7 +58,7 @@ class ReadInterface : public Interface
      *  \param[in] name_ The name of the file associated with the instantiation.
      *  \param[in] obj_  Pointer to the Object-layer object (polymorphic).
      */
-    ReadInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_) : Interface(piol_, name_, obj_)
+    ReadInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_) : Interface(piol_, name_)
     {
     }
 
@@ -150,7 +139,7 @@ class ReadInterface : public Interface
      *
      *  \details When prm==PARAM_NULL only the trace DF is read.
      */
-    virtual void readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const = 0;
+    void readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 };
 
 /*! \brief The File layer interface. Specific File implementations
@@ -158,15 +147,16 @@ class ReadInterface : public Interface
  */
 class WriteInterface : public Interface
 {
+    protected :
+    std::shared_ptr<Obj::WriteInterface> obj;  //!< Pointer to the Object-layer object (polymorphic).
     public :
     /*! \brief The constructor.
      *  \param[in] piol_ This PIOL ptr is not modified but is used to instantiate another shared_ptr.
      *  \param[in] name_ The name of the file associated with the instantiation.
      *  \param[in] obj_  Pointer to the Object-layer object (polymorphic).
      */
-    WriteInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_) : Interface(piol_, name_, obj_)
-    {
-    }
+    WriteInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_) : Interface(piol_, name_)
+    { }
 
     /*! \brief Write the human readable text from the file.
      *  \param[in] text_ The new string containing the text (in ASCII format).
@@ -240,42 +230,18 @@ class WriteInterface : public Interface
     virtual void writeTrace(csize_t sz, csize_t * offset, trace_t * trace, const Param * prm = PARAM_NULL, csize_t skip = 0) = 0;
 };
 
-/*! \brief An intitial class for 3d volumes
- */
-class Model3dInterface
-{
-    public :
-    std::tuple<llint, llint, llint> il;  //!< Parameters for the inline coordinate (start, count, increment)
-    std::tuple<llint, llint, llint> xl;  //!< Parameters for the crossline coordinate (start, count, increment)
-
-    /*! read the 3d file based on il and xl that match those in the given \c gather array.
-     *  \param[in] offset the offset into the global array
-     *  \param[in] sz the number of gathers for the local process
-     *  \param[in] gather a structure which contains the il and xl coordinates of interest
-     *  \return return a vector of traces containing the trace values requested
-     */
-    virtual std::vector<trace_t> readModel(csize_t offset, csize_t sz, const Uniray<size_t, llint, llint> & gather) = 0;
-
-    /*! Read the 3d file based on il and xl that match those in the given \c gather array.
-     *  \param[in] sz The number of offsets for the local process
-     *  \param[in] offset the offset into the global array
-     *  \param[in] gather A structure which contains the il and xl coordinates of interest
-     *  \return Return a vector of traces containing the trace values requested
-     */
-    virtual std::vector<trace_t> readModel(csize_t sz, csize_t * offset, const Uniray<size_t, llint, llint> & gather) = 0;
-};
-
 /*! Construct ReadSEGY objects with default object and MPI-IO layers.
  * \tparam T The type of the file layer.
  * \param[in] piol The piol shared object.
  * \param[in] name The name of the file.
  * \return Return a pointer of the respective file type.
  */
-template <class T>
+template <class T, class E = typename T::Obj, class F = typename E::Data>
 std::unique_ptr<typename std::enable_if<std::is_base_of<File::ReadInterface, T>::value, T>::type>
 makeFile(Piol piol, const std::string name)
 {
-    auto obj = Obj::makeDefaultObj(piol, name, FileMode::Read);
+    auto data = std::make_shared<F>(piol, name, FileMode::Read);
+    auto obj = std::make_shared<E>(piol, name, data);
     auto file = std::make_unique<T>(piol, name, obj);
     return std::move(file);
 }
@@ -286,11 +252,12 @@ makeFile(Piol piol, const std::string name)
  * \param[in] name The name of the file
  * \return Return a pointer of the respective file type.
  */
-template <class T>
+template <class T, class E = typename T::Obj, class F = typename E::Data>
 std::unique_ptr<typename std::enable_if<std::is_base_of<File::WriteInterface, T>::value, T>::type>
 makeFile(Piol piol, const std::string name)
 {
-    auto obj = Obj::makeDefaultObj(piol, name, FileMode::Write);
+    auto data = std::make_shared<F>(piol, name, FileMode::Write);
+    auto obj = std::make_shared<E>(piol, name, data);
     auto file = std::make_unique<T>(piol, name, obj);
     return std::move(file);
 }

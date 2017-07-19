@@ -10,7 +10,6 @@
 #include "file/filesegy.hh"
 #include "object/object.hh"
 #include "file/iconv.hh"
-#include "share/misc.hh"
 namespace PIOL { namespace File {
 ///////////////////////////////      Constructor & Destructor      ///////////////////////////////
 ReadSEGY::Opt::Opt(void)
@@ -18,75 +17,19 @@ ReadSEGY::Opt::Opt(void)
     incFactor = SI::Micro;
 }
 
-ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, const ReadSEGY::Opt & opt, std::shared_ptr<Obj::Interface> obj_)
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, const ReadSEGY::Opt & opt, std::shared_ptr<Obj::ReadInterface> obj_)
     : ReadInterface(piol_, name_, obj_)
 {
     Init(opt);
 }
 
-ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_)
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_)
     : ReadInterface(piol_, name_, obj_)
 {
     ReadSEGY::Opt opt;
     Init(opt);
 }
 ///////////////////////////////////       Member functions      ///////////////////////////////////
-
-ReadSEGYModel::ReadSEGYModel(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_) : ReadSEGY(piol_, name_, obj_)
-{
-    std::vector<size_t> vlist = {0LU, 1LU, readNt() - 1LU};
-    File::Param prm(vlist.size());
-    readParam(vlist.size(), vlist.data(), &prm);
-
-    llint il0 = File::getPrm<llint>(0LU, Meta::il, &prm);
-    llint xl0 = File::getPrm<llint>(0LU, Meta::xl, &prm);
-
-    llint ilInc = File::getPrm<llint>(1LU, Meta::il, &prm) - il0;
-    llint ilNum = (ilInc ? (File::getPrm<llint>(2LU, Meta::il, &prm) - il0) / ilInc : 0LU);
-    llint xlNum = (readNt() / (ilNum ? ilNum : 1LU));
-    llint xlInc = (File::getPrm<llint>(2LU, Meta::xl, &prm) - xl0) / xlNum;
-
-    ilInc = (ilInc ? ilInc : 1LU);
-    xlInc = (xlInc ? xlInc : 1LU);
-
-    il = std::make_tuple(il0, ilNum, ilInc);
-    xl = std::make_tuple(xl0, xlNum, xlInc);
-}
-
-std::vector<trace_t> ReadSEGYModel::readModel(csize_t offset, csize_t sz, const Uniray<size_t, llint, llint> & gather)
-{
-    std::vector<trace_t> trc(sz * readNs());
-    std::vector<size_t> offsets(sz);
-    for (size_t i = 0; i < sz; i++)
-    {
-        auto val = gather[offset + i];
-        /* The below can be translated to:
-         * trace number = ilNumber * xlInc + xlNumber
-         * much like indexing in a 2d array.
-         */
-        offsets[i] = ((std::get<1>(val) - std::get<0>(il)) / std::get<2>(il)) * std::get<1>(xl)
-                  + ((std::get<2>(val) - std::get<0>(xl)) / std::get<2>(xl));
-    }
-
-    readTrace(offsets.size(), offsets.data(), trc.data(), const_cast<Param *>(PARAM_NULL), 0LU);
-    return trc;
-}
-
-std::vector<trace_t> ReadSEGYModel::readModel(csize_t sz, csize_t * offset, const Uniray<size_t, llint, llint> & gather)
-{
-    std::vector<trace_t> trc(sz * readNs());
-    std::vector<size_t> offsets(sz);
-    for (size_t i = 0; i < sz; i++)
-    {
-        auto val = gather[offset[i]];
-        offsets[i] = ((std::get<1>(val) - std::get<0>(il)) / std::get<2>(il)) * std::get<1>(xl)
-                  + ((std::get<2>(val) - std::get<0>(xl)) / std::get<2>(xl));
-    }
-
-    readTrace(offsets.size(), offsets.data(), trc.data(), const_cast<Param *>(PARAM_NULL), 0LU);
-    return trc;
-}
-
 void ReadSEGY::procHeader(size_t fsz, uchar * buf)
 {
     ns = getMd(Hdr::NumSample, buf);
@@ -139,7 +82,7 @@ size_t ReadSEGY::readNt(void)
  *  \param[in] skip Skip \c skip entries in the parameter structure
  */
 template <typename T>
-void readTraceT(Obj::Interface * obj, const Format format, csize_t ns, const T offset, std::function<size_t(size_t)> offunc,
+void readTraceT(Obj::ReadInterface * obj, const Format format, csize_t ns, const T offset, std::function<size_t(size_t)> offunc,
                                       csize_t sz, trace_t * trc, Param * prm, csize_t skip)
 {
     uchar * tbuf = reinterpret_cast<uchar *>(trc);
@@ -189,37 +132,5 @@ void ReadSEGY::readTrace(csize_t offset, csize_t sz, trace_t * trc, Param * prm,
 void ReadSEGY::readTrace(csize_t sz, csize_t * offset, trace_t * trc, Param * prm, csize_t skip) const
 {
     readTraceT(obj.get(), format, ns, offset,  [offset] (size_t i) -> size_t { return offset[i]; }, sz, trc, prm, skip);
-}
-
-void ReadSEGY::readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trc, Param * prm, csize_t skip) const
-{
-    //Sort the initial offset and make a new offset without duplicates
-    auto idx = getSortIndex(sz, offset);
-    std::vector<size_t> nodups;
-    nodups.push_back(offset[idx[0]]);
-    for (size_t j = 1; j < sz; j++)
-        if (offset[idx[j-1]] != offset[idx[j]])
-            nodups.push_back(offset[idx[j]]);
-
-    File::Param sprm(prm->r, (prm != PARAM_NULL ? nodups.size() : 0LU));
-    std::vector<trace_t> strc(ns * (trc != TRACE_NULL ? nodups.size() : 0LU));
-
-    readTrace(nodups.size(), nodups.data(), (trc != TRACE_NULL ? strc.data() : trc),
-                                            (prm != PARAM_NULL ? &sprm : prm), 0LU);
-
-    if (prm != PARAM_NULL)
-        for (size_t n = 0, j = 0; j < sz; ++j)
-        {
-            n += (j && offset[idx[j-1]] != offset[idx[j]]);
-            cpyPrm(n, &sprm, skip + idx[j], prm);
-        }
-
-    if (trc != TRACE_NULL)
-        for (size_t n = 0, j = 0; j < sz; ++j)
-        {
-            n += (j && offset[idx[j-1]] != offset[idx[j]]);
-            for (size_t k = 0; k < ns; k++)
-                trc[idx[j]*ns + k] = strc[n*ns + k];
-        }
 }
 }}

@@ -6,10 +6,11 @@
  *   \details This utility searches for files matching a wildcard, filters out the SEGY matches
  *            and provides details about what is in the files.
  *//*******************************************************************************************/
-#include "cppfileapi.hh"
 #include <iostream>
 #include <glob.h>
 #include <regex>
+#include "cppfileapi.hh"
+#include "file/filesegy.hh"
 using namespace PIOL;
 
 /*! Main function for assess.
@@ -41,7 +42,7 @@ int main(int argc, char ** argv)
         {
             std::cout << "File: " << globs.gl_pathv[i] << "\n";
 
-            File::ReadDirect file(piol, globs.gl_pathv[i]);
+            File::ReadSEGY file(piol, globs.gl_pathv[i]);
             piol.isErr();
             std::cout << "-\tNs: " << file.readNs() << "\n";
             std::cout << "-\tNt: " << file.readNt() << "\n";

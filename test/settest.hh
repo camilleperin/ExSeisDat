@@ -51,13 +51,9 @@ extern void taperMan(size_t nt, size_t ns, trace_t * trc, TaperFunc func, size_t
 template <class T>
 std::shared_ptr<T> makeTest(Piol piol, std::string name)
 {
-        File::WriteSEGY::Opt f;
-        File::ReadSEGY::Opt rf;
-        Obj::SEGY::Opt o;
-        Data::MPIIO::Opt d;
-        auto data = std::make_shared<Data::MPIIO>(piol, name, d, FileMode::Test);
-        auto obj = std::make_shared<Obj::SEGY>(piol, name, o, data, FileMode::Test);
-        return std::make_shared<T>(piol, name, obj);
+    auto data = std::make_shared<typename T::Obj::Data>(piol, name, FileMode::Test);
+    auto obj = std::make_shared<typename T::Obj>(piol, name, data);
+    return std::make_shared<T>(piol, name, obj);
 }
 
 struct SetTest : public Test

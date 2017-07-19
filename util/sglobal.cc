@@ -1,16 +1,17 @@
-#include "sglobal.hh"
 #include <assert.h>
 #include <cmath>
 #include <algorithm>
 #include <numeric>
-std::pair<size_t, size_t> decompose(size_t sz, size_t numRank, size_t rank)
+#include "sglobal.hh"
+#include "share/decomp.hh"
+/*std::pair<size_t, size_t> decompose(size_t sz, size_t numRank, size_t rank)
 {
     assert(numRank > rank);
     size_t q = sz/numRank;
     size_t r = sz%numRank;
     size_t start = q * rank + std::min(rank, r);
     return std::make_pair(start, std::min(sz - start, q + (rank < r)));
-}
+}*/
 
 std::vector<size_t> lobdecompose(PIOL::ExSeisPIOL * piol, size_t sz, size_t numRank, size_t rank)
 {
@@ -40,7 +41,7 @@ std::pair<size_t, size_t> blockDecomp(size_t sz, size_t bsz, size_t numRank, siz
 
     assert(!((sz - rstart - rend) % bsz));          //Make sure there isn't any leftover, this shouldn't be possible
 
-    auto newdec = decompose(bcnt, numRank, rank);   //Do a regular decomposition of the blocks
+    auto newdec = PIOL::decompose(bcnt, numRank, rank);   //Do a regular decomposition of the blocks
 
     newdec.first *= bsz;
     newdec.second *= bsz;

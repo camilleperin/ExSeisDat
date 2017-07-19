@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
     ExSeis piol;
 
     //Create a SEGY file object
-    File::WriteDirect file(piol, name);
+    File::WriteSEGY file(piol, name);
 
     //lnt is the number of traces and sets of trace parameters we will write per process
     size_t nt = 40000, ns = 300;

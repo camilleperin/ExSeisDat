@@ -14,7 +14,7 @@
 #include "file/file.hh"
 #include "file/segymd.hh"
 #include "file/dynsegymd.hh"
-#include "object/object.hh" //For the makes
+#include "object/objsegy.hh" //For the makes
 namespace PIOL { namespace File {
 enum class Format : int16_t;    //!< Data Format options
 /*! The SEG-Y implementation of the file layer
@@ -22,6 +22,7 @@ enum class Format : int16_t;    //!< Data Format options
 class ReadSEGY : public ReadInterface
 {
     public :
+    typedef Obj::ReadSEGY Obj;
     /*! \brief The SEG-Y options structure.
      */
     struct Opt
@@ -56,24 +57,26 @@ class ReadSEGY : public ReadInterface
      *  \param[in] segyOpt The SEGY-File options
      *  \param[in] obj_    A shared pointer to the object layer
      */
-    ReadSEGY(const Piol piol_, const std::string name_, const ReadSEGY::Opt & segyOpt, std::shared_ptr<Obj::Interface> obj_);
+    ReadSEGY(const Piol piol_, const std::string name_, const ReadSEGY::Opt & segyOpt, std::shared_ptr<Obj::ReadInterface> obj_);
 
     /*! \brief The SEGY-Object class constructor.
      *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
      *  \param[in] name_   The name of the file associated with the instantiation.
      *  \param[in] obj_    A shared pointer to the object layer
      */
-    ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_);
+    ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_);
+
+    ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Obj>(piol_, name_))
+    { }
 
     size_t readNt(void);
 
     void readTrace(csize_t offset, csize_t sz, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 
     void readTrace(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
-
-    void readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 };
 
+#ifdef GONE
 /*! A SEGY class for velocity models
  */
 class ReadSEGYModel : public Model3dInterface, public ReadSEGY
@@ -84,18 +87,21 @@ class ReadSEGYModel : public Model3dInterface, public ReadSEGY
      \param[in] name_ The name of the file.
      \param[in] obj_ A shared pointer for the object layer object.
      */
-    ReadSEGYModel(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_);
+    ReadSEGYModel(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_);
 
     std::vector<trace_t> readModel(csize_t offset, csize_t sz, const Uniray<size_t, llint, llint> & gather);
 
     std::vector<trace_t> readModel(csize_t sz, csize_t * offset, const Uniray<size_t, llint, llint> & gather);
 };
+#endif
 
 /*! The SEG-Y implementation of the file layer
  */
 class WriteSEGY : public WriteInterface
 {
     public :
+    typedef Obj::WriteSEGY Obj;
+
     /*! \brief The SEG-Y options structure.
      */
     struct Opt
@@ -146,18 +152,21 @@ class WriteSEGY : public WriteInterface
      *  \param[in] segyOpt The SEGY-File options
      *  \param[in] obj_    A shared pointer to the object layer
      */
-    WriteSEGY(const Piol piol_, const std::string name_, const WriteSEGY::Opt & segyOpt, std::shared_ptr<Obj::Interface> obj_);
+    WriteSEGY(const Piol piol_, const std::string name_, const WriteSEGY::Opt & segyOpt, std::shared_ptr<Obj::WriteInterface> obj_);
 
     /*! \brief The SEGY-Object class constructor.
      *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
      *  \param[in] name_   The name of the file associated with the instantiation.
      *  \param[in] obj_    A shared pointer to the object layer
      */
-    WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::Interface> obj_);
+    WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_);
 
     /*! \brief Destructor. Processes any remaining flags
      */
     ~WriteSEGY(void);
+
+    WriteSEGY(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<Obj>(piol_, name_))
+    { }
 
     void writeText(const std::string text_);
 

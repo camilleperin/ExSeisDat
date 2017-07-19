@@ -7,6 +7,7 @@
 #include "cppfileapi.hh"
 #include "sglobal.hh"
 #include "ops/sort.hh"
+#include "file/filesegy.hh"
 
 using namespace PIOL;
 using namespace File;
@@ -34,12 +35,12 @@ int main(int argc, char ** argv)
 
     assert(name1.size());
 
-    File::ReadDirect src(piol, name1);
+    File::ReadSEGY src(piol, name1);
 
     //Perform the decomposition and read coordinates of interest.
-    auto dec = decompose(piol, src);
+    auto dec = decompose(piol, &src);
 
-    if (checkOrder(src, dec, type))
+    if (checkOrder(&src, dec, type))
         std::cout << "Success\n";
     else
         std::cerr << "Failure\n";
