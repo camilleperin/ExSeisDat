@@ -332,7 +332,7 @@ class Set
      */
     void summary(void) const;
 
-    /*! Add a file to the set based on the File::ReadInterface
+    /*! Add a file to the set based on the File::ReadInterface. Also used in tests.
      *  \param[in] in The file interface
      */
     void add(std::unique_ptr<File::ReadInterface> in);

@@ -66,8 +66,11 @@ class ReadSEGY : public ReadInterface
      */
     ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_);
 
-    ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Obj>(piol_, name_))
-    { }
+    /*! \brief The SEGY-Object class constructor with default object layer
+     *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
+     *  \param[in] name_   The name of the file associated with the instantiation.
+     */
+    ReadSEGY(const Piol piol_, const std::string name_);
 
     size_t readNt(void);
 

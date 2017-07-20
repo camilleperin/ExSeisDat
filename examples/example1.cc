@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include "cppfileapi.hh"
+#include "file/filesegy.hh"
 using namespace PIOL;
 int main(int argc, char ** argv)
 {

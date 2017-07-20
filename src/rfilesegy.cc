@@ -10,6 +10,8 @@
 #include "file/filesegy.hh"
 #include "object/object.hh"
 #include "file/iconv.hh"
+#warning
+#include <iostream>
 namespace PIOL { namespace File {
 ///////////////////////////////      Constructor & Destructor      ///////////////////////////////
 ReadSEGY::Opt::Opt(void)
@@ -29,6 +31,12 @@ ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Ob
     ReadSEGY::Opt opt;
     Init(opt);
 }
+
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadSEGY(piol_, name_, std::make_shared<Obj>(piol_, name_))
+{
+}
+
+
 ///////////////////////////////////       Member functions      ///////////////////////////////////
 void ReadSEGY::procHeader(size_t fsz, uchar * buf)
 {

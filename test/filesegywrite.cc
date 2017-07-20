@@ -44,7 +44,7 @@ TEST_F(FileSEGYWrite, FileWriteTrHdrCoord1)
     File::setPrm(0, Meta::xCmp, 1600.1, &prm);
     File::setPrm(0, Meta::yCmp, 2400.22, &prm);
     File::setPrm(0, Meta::tn, 10U, &prm);
-    file->writeParam(10U, 1U, &prm);
+    wfile->writeParam(10U, 1U, &prm);
 }
 
 TEST_F(FileSEGYWrite, FileWriteTrHdrCoord2)
@@ -58,7 +58,7 @@ TEST_F(FileSEGYWrite, FileWriteTrHdrCoord2)
     File::setPrm(0, Meta::ySrc, 3400.2220, &prm);
     File::setPrm(0, Meta::tn, 10U, &prm);
 
-    file->writeParam(10U, 1U, &prm);
+    wfile->writeParam(10U, 1U, &prm);
 }
 
 TEST_F(FileSEGYWrite, FileWriteTrHdrCoord3)
@@ -71,7 +71,7 @@ TEST_F(FileSEGYWrite, FileWriteTrHdrCoord3)
     File::setPrm(0, Meta::xSrc, 162300.10009, &prm);
     File::setPrm(0, Meta::ySrc, 3400.22201, &prm);
     File::setPrm(0, Meta::tn, 10U, &prm);
-    file->writeParam(10U, 1U, &prm);
+    wfile->writeParam(10U, 1U, &prm);
 }
 
 TEST_F(FileSEGYWrite, FileWriteTraceNormal)
@@ -347,8 +347,8 @@ TEST_F(FileSEGYDeath, FileWriteAPIBadns)
 {
     ns = 0x470000;
     makeMockSEGY<false>();
-    file->writeNs(ns);
-    mock.reset();
+    wfile->writeNs(ns);
+    wmock.reset();
     EXPECT_EXIT(piol->isErr(), ExitedWithCode(EXIT_FAILURE), ".*8 3 Fatal Error in PIOL. . Dumping Log 0");
 }
 
@@ -357,9 +357,9 @@ TEST_F(FileSEGYDeath, FileWriteAPIBadnt)
 {
     nt = NT_LIMITS + 1;
     makeMockSEGY<false>();
-    file->writeNt(nt);
+    wfile->writeNt(nt);
 
-    mock.reset();
+    wmock.reset();
     EXPECT_EXIT(piol->isErr(), ExitedWithCode(EXIT_FAILURE), ".*8 3 Fatal Error in PIOL. . Dumping Log 0");
 }
 #endif
@@ -368,9 +368,9 @@ TEST_F(FileSEGYDeath, FileWriteAPIBadinc)
 {
     geom_t ginc = geom_t(1)/geom_t(0);
     makeMockSEGY<false>();
-    file->writeInc(ginc);
+    wfile->writeInc(ginc);
 
-    mock.reset();
+    wmock.reset();
     EXPECT_EXIT(piol->isErr(), ExitedWithCode(EXIT_FAILURE), ".*8 3 Fatal Error in PIOL. . Dumping Log 0");
 }
 

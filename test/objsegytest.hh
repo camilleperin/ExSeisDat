@@ -42,16 +42,8 @@ enum class Block
     DODF,
     DO
 };
-class DefObjTest : public Test
-{
-    public :
-    virtual void makeRealSEGY(std::string name) = 0;
-    virtual void makeSEGY(std::string name) = 0;
-//    virtual ~DefObjTest(void) { }
-};
 
-
-class ReadObjTest : public DefObjTest
+class ObjTest : public Test
 {
     protected :
     Piol piol;
@@ -59,7 +51,7 @@ class ReadObjTest : public DefObjTest
     std::shared_ptr<MockData> mock;
     std::unique_ptr<Obj::ReadInterface> obj;
 
-    ReadObjTest()
+    ObjTest()
     {
         mock = nullptr;
         obj = nullptr;
@@ -67,7 +59,7 @@ class ReadObjTest : public DefObjTest
         piol = std::make_shared<ExSeisPIOL>(opt);
     }
 
-    void makeRealSEGY(std::string name)
+    void makeReadRealSEGY(std::string name)
     {
         auto data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Read);
         piol->isErr();
@@ -75,7 +67,7 @@ class ReadObjTest : public DefObjTest
         piol->isErr();
     }
 
-    void makeSEGY(std::string name = notFile)
+    virtual void makeSEGY(std::string name = notFile)
     {
         mock = std::make_shared<MockData>(piol, notFile);
         piol->isErr();
@@ -83,7 +75,7 @@ class ReadObjTest : public DefObjTest
         piol->isErr();
     }
 
-    ~ReadObjTest()
+    ~ObjTest()
     {
     }
 
@@ -104,7 +96,7 @@ class ReadObjTest : public DefObjTest
             cHo.resize(SEGSz::getHOSz());
             for (size_t i = 0U; i < SEGSz::getHOSz(); i++)
                 cHo[i] = getPattern(off + i);
-                EXPECT_CALL(*mock, read(0U, SEGSz::getHOSz(), _))
+                EXPECT_CALL(*mock, read(0LU, SEGSz::getHOSz(), _))
                             .WillOnce(SetArrayArgument<2>(cHo.begin(), cHo.end()));
         }
 
@@ -255,47 +247,58 @@ class ReadObjTest : public DefObjTest
     }
 };
 
+class ReadObjTest : public ObjTest
+{
+    public :
+    void makeRealSEGY(std::string name)
+    {
+        makeReadRealSEGY(name);
+    }
+};
+
 class WriteObjTest : public ReadObjTest
 {
     protected :
     Piol piol;
     Comm::MPI::Opt opt;
     std::shared_ptr<MockData> mock;
-    Obj::WriteInterface * obj;
+    Obj::WriteInterface * wobj;
 
     WriteObjTest()
     {
         mock = nullptr;
-        obj = nullptr;
+        wobj = nullptr;
         opt.initMPI = false;
         piol = std::make_shared<ExSeisPIOL>(opt);
     }
 
     void makeRealSEGY(std::string name)
     {
-        if (obj != nullptr)
-            delete obj;
+        if (wobj != nullptr)
+            delete wobj;
 
         auto data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Test);
         piol->isErr();
-        obj = new Obj::WriteSEGY(piol, name, data);
+        wobj = new Obj::WriteSEGY(piol, name, data);
         piol->isErr();
+        makeReadRealSEGY(name);
     }
 
     void makeSEGY(std::string name = notFile)
     {
-        if (obj != nullptr)
-            delete obj;
+        if (wobj != nullptr)
+            delete wobj;
+
         mock = std::make_shared<MockData>(piol, notFile);
         piol->isErr();
-        obj = new Obj::WriteSEGY(piol, name, mock);
+        wobj = new Obj::WriteSEGY(piol, name, mock);
         piol->isErr();
     }
 
     ~WriteObjTest()
     {
-        if (obj != nullptr)
-            delete obj;
+        if (wobj != nullptr)
+            delete wobj;
     }
 
     template <bool MOCK = true>
@@ -322,9 +325,9 @@ class WriteObjTest : public ReadObjTest
         for (auto i = 0U; i < SEGSz::getHOSz(); i++)
             ho[i+extra] = cHo[i];
 
-        obj->writeHO(&ho[extra]);
+        wobj->writeHO(&ho[extra]);
         piol->isErr();
-        if (MOCK)
+        if (!MOCK)
             readHOPatternTest<MOCK>(off, magic);
     }
 
@@ -370,14 +373,14 @@ class WriteObjTest : public ReadObjTest
         switch (Type)
         {
             case Block::DODF :
-                obj->writeDODF(offset, ns, nt, &trnew[extra]);
+                wobj->writeDODF(offset, ns, nt, &trnew[extra]);
             break;
             case Block::DOMD :
-                obj->writeDOMD(offset, ns, nt, &trnew[extra]);
+                wobj->writeDOMD(offset, ns, nt, &trnew[extra]);
             break;
             default :
             case Block::DO :
-                obj->writeDO(offset, ns, nt, &trnew[extra]);
+                wobj->writeDO(offset, ns, nt, &trnew[extra]);
             break;
         }
 
@@ -424,14 +427,14 @@ class WriteObjTest : public ReadObjTest
         switch (Type)
         {
             case Block::DODF :
-                obj->writeDODF(offset.data(), ns, nt, &trnew[extra]);
+                wobj->writeDODF(offset.data(), ns, nt, &trnew[extra]);
             break;
             case Block::DOMD :
-                obj->writeDOMD(offset.data(), ns, nt, &trnew[extra]);
+                wobj->writeDOMD(offset.data(), ns, nt, &trnew[extra]);
             break;
             default :
             case Block::DO :
-                obj->writeDO(offset.data(), ns, nt, &trnew[extra]);
+                wobj->writeDO(offset.data(), ns, nt, &trnew[extra]);
             break;
         }
         if (!MOCK)

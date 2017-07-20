@@ -58,9 +58,8 @@ class ReadInterface : public Interface
      *  \param[in] name_ The name of the file associated with the instantiation.
      *  \param[in] obj_  Pointer to the Object-layer object (polymorphic).
      */
-    ReadInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_) : Interface(piol_, name_)
-    {
-    }
+    ReadInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_) : Interface(piol_, name_), obj(obj_)
+    { }
 
     ReadInterface(void) : Interface()
     { }
@@ -155,7 +154,7 @@ class WriteInterface : public Interface
      *  \param[in] name_ The name of the file associated with the instantiation.
      *  \param[in] obj_  Pointer to the Object-layer object (polymorphic).
      */
-    WriteInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_) : Interface(piol_, name_)
+    WriteInterface(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_) : Interface(piol_, name_), obj(obj_)
     { }
 
     /*! \brief Write the human readable text from the file.

@@ -48,8 +48,7 @@ class ReadSEGY : public ReadInterface
     ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_);
 
     ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Read))
-    {
-    }
+    { }
 
     size_t getFileSz(void) const;
 

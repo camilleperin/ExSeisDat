@@ -7,13 +7,13 @@ TEST_F(FileSEGYIntegWrite, SEGYWriteReadHO)
     nt = 400U;
 
     makeSEGY(tempFile);
-    EXPECT_EQ(ns, readfile->readNs());
+    EXPECT_EQ(ns, rfile->readNs());
     piol->isErr();
 
-    EXPECT_EQ(nt, readfile->readNt());
+    EXPECT_EQ(nt, rfile->readNt());
     piol->isErr();
 
-    std::string text = readfile->readText();
+    std::string text = rfile->readText();
     piol->isErr();
     ASSERT_TRUE(testString.size() <= text.size());
     for (size_t i = 0; i < testString.size(); i++)
@@ -32,8 +32,8 @@ TEST_F(FileSEGYIntegWrite, SEGYWriteReadParam)
     makeSEGY(tempFile);
 
     piol->isErr();
-    file->writeNs(ns);
-    file->writeNt(nt);
+    wfile->writeNs(ns);
+    wfile->writeNt(nt);
     piol->isErr();
 
     File::setPrm(0, Meta::il, grid.il, &prm);
@@ -41,8 +41,8 @@ TEST_F(FileSEGYIntegWrite, SEGYWriteReadParam)
     File::setPrm(0, Meta::xCmp, coord.x, &prm);
     File::setPrm(0, Meta::yCmp, coord.y, &prm);
 
-    file->writeParam(201U, 1U, &prm);
-    readfile->readParam(201U, 1U, &prm2);
+    wfile->writeParam(201U, 1U, &prm);
+    rfile->readParam(201U, 1U, &prm2);
 
     ASSERT_EQ(grid.il, File::getPrm<llint>(0U, Meta::il, &prm2));
     ASSERT_EQ(grid.xl, File::getPrm<llint>(0U, Meta::xl, &prm2));

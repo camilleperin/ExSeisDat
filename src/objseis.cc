@@ -50,6 +50,12 @@ ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const ReadSeis::Op
 }
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////
+
+size_t ReadSeis::getFileSz(void) const
+{
+    return 0LU;
+}
+
 void ReadSeis::readHO(uchar * ho) const
 {
     assert(0);

@@ -49,7 +49,8 @@ class ReadSeis : public ReadInterface
 
     ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Read))
     { }
-    ~ReadSeis(void) { }
+
+//    ~ReadSeis(void) { }
 
     size_t getFileSz(void) const;
 

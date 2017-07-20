@@ -13,6 +13,8 @@
 #include "file/filesegy.hh"
 #include "object/object.hh"
 #include "share/misc.hh"
+#warning debug
+#include <iostream>
 namespace PIOL { namespace File {
 ///////////////////////////////      Constructor & Destructor      ///////////////////////////////
 WriteSEGY::Opt::Opt(void)

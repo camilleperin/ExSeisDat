@@ -4,11 +4,12 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include "file/filesegy.hh"
 #include "cppfileapi.hh"
 #include "share/segy.hh"
 using namespace PIOL;
 
-void writeContig(ExSeis piol, File::WriteInterface * file, size_t offset, size_t nt, size_t ns, size_t lnt, size_t extra, size_t max)
+void writeContig(ExSeisPIOL * piol, File::WriteInterface * file, size_t offset, size_t nt, size_t ns, size_t lnt, size_t extra, size_t max)
 {
     float fhalf = float(nt*ns)/2.0;
     float off = float(nt*ns)/4.0;
@@ -34,12 +35,12 @@ void writeContig(ExSeis piol, File::WriteInterface * file, size_t offset, size_t
         for (size_t j = 0; j < trc.size(); j++)
             trc[j] = fhalf - std::abs(-fhalf + float((offset+i)*ns+j)) - off;
         file->writeTrace(offset + i, rblock, trc.data(), &prm);
-        piol.isErr();
+        piol->isErr();
     }
     for (size_t j = 0; j < extra; j++)
     {
         file->writeTrace(0U, size_t(0), nullptr, File::PARAM_NULL);
-        piol.isErr();
+        piol->isErr();
     }
 }
 

@@ -10,19 +10,17 @@ csize_t smallnt = 400U;
 //Read test of File::SEGY -> Obj::SEGY -> Data::MPIIO
 TEST_F(FileSEGYIntegRead, SEGYReadHO)
 {
-    nt = smallnt;
-    ns = smallns;
     makeSEGY<false>(smallSEGYFile);
 
     piol->isErr();
-    EXPECT_EQ(ns, file->readNs());
+    EXPECT_EQ(smallns, rfile->readNs());
     piol->isErr();
-    EXPECT_EQ(nt, file->readNt());
+    EXPECT_EQ(smallnt, rfile->readNt());
     piol->isErr();
     if (sizeof(geom_t) == sizeof(double))
-        EXPECT_DOUBLE_EQ(double(20e-6), file->readInc());
+        EXPECT_DOUBLE_EQ(double(20e-6), rfile->readInc());
     else
-        EXPECT_FLOAT_EQ(float(20e-6), file->readInc());
+        EXPECT_FLOAT_EQ(float(20e-6), rfile->readInc());
 }
 
 TEST_F(FileSEGYIntegRead, FileReadTraceSmall)

@@ -3,9 +3,9 @@
 TEST_F(FileSEGYRead, FileConstructor)
 {
     makeMockSEGY();
-    EXPECT_EQ(piol, file->piol);
-    EXPECT_EQ(notFile, file->name);
-    EXPECT_EQ(mock, file->obj);
+    EXPECT_EQ(piol, rfile->piol);
+    EXPECT_EQ(notFile, rfile->name);
+    EXPECT_EQ(rmock, rfile->obj);
     ASSERT_TRUE(ns < 0x10000);
 }
 
@@ -13,16 +13,16 @@ TEST_F(FileSEGYRead, FileReadHO)
 {
     makeMockSEGY();
 
-    EXPECT_EQ(nt, file->readNt());
+    EXPECT_EQ(nt, rfile->readNt());
     piol->isErr();
 
-    EXPECT_EQ(ns, file->readNs());
+    EXPECT_EQ(ns, rfile->readNs());
     piol->isErr();
 
-    EXPECT_EQ(geom_t(inc*SI::Micro), file->readInc());
+    EXPECT_EQ(geom_t(inc*SI::Micro), rfile->readInc());
     piol->isErr();
 
-    std::string text = file->readText();
+    std::string text = rfile->readText();
     EXPECT_EQ(SEGSz::getTextSz(), text.size());
 
 //EBCDIC conversion check
@@ -36,7 +36,7 @@ TEST_F(FileSEGYRead, FileReadHOAPI)
     testEBCDIC = true;
     makeMockSEGY();
 
-    std::string text = file->readText();
+    std::string text = rfile->readText();
     EXPECT_EQ(3200U, text.size());
     EXPECT_EQ(SEGSz::getTextSz(), text.size());
     size_t slen = testString.size();
@@ -60,7 +60,7 @@ TEST_F(FileSEGYRead, FileReadTrHdrBigNs)
     initTrBlock();
 
     const size_t bigns = 10000;
-    file->ns = bigns;
+    rfile->ns = bigns;
     initReadTrMock(bigns, nt/2U);
 }
 

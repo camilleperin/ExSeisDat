@@ -11,6 +11,7 @@
 #include "file/filesegy.hh"
 //#include "object/objsegy.hh"
 //#include "data/datampiio.hh"
+#warning Integrate this into anc/piol.hh?
 namespace PIOL {
 ExSeis::ExSeis(const Log::Verb maxLevel)
 {
@@ -34,4 +35,4 @@ void ExSeis::isErr(std::string msg) const
 {
     piol->isErr(msg);
 }
-}}
+}
