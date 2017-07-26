@@ -8,9 +8,9 @@
  *//*******************************************************************************************/
 #include <cmath>
 #include "global.hh"
-#include "file/segymd.hh"
+#include "share/segy.hh"
 
-namespace PIOL { namespace File {
+namespace PIOL { namespace SEGY {
 geom_t scaleConv(int16_t scale)
 {
     scale = (!scale ? 1 : scale);
@@ -68,4 +68,5 @@ int16_t deScale(const geom_t val)
         return 1;
     }
 }
+
 }}

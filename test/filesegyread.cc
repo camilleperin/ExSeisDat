@@ -1,4 +1,4 @@
-#include "filesegytest.hh"
+#include "filetest.hh"
 
 TEST_F(FileSEGYRead, FileConstructor)
 {

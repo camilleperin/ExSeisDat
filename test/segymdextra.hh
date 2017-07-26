@@ -22,15 +22,41 @@
 #include "share/units.hh"
 #include "share/datatype.hh"
 
-namespace PIOL { namespace File {
-/*! Misc Trace Header offsets
- */
-enum class TrHdr : size_t
+enum Hdr : size_t
 {
-    SeqNum      = 1U,   //!< int32_t. The trace sequence number within the Line
-    SeqFNum     = 5U,   //!< int32_t. The trace sequence number within SEG-Y File
-    ORF         = 9U,   //!< int32_t. The original field record number.
-    TORF        = 13U   //!< int32_t. The trace number within the ORF.
+    Increment  = 3216U,
+    NumSample  = 3220U,
+    Type       = 3224U,
+    Sort       = 3228U,
+    Units      = 3254U,
+    SEGYFormat = 3500U,
+    FixedTrace = 3502U,
+    Extensions = 3504U,
+};
+
+enum TrHdr : size_t
+{
+    SeqNum      = 0U,
+    SeqFNum     = 4U,
+    ORF         = 8U,
+    TORF        = 12U,
+    RcvElv      = 40U,
+    SurfElvSrc  = 44U,
+    SrcDpthSurf = 48U,
+    DtmElvRcv   = 52U,
+    DtmElvSrc   = 56U,
+    WtrDepSrc   = 60U,
+    WtrDepRcv   = 64U,
+    ScaleElev   = 68U,
+    ScaleCoord  = 70U,
+    xSrc        = 72U,
+    ySrc        = 76U,
+    xRcv        = 80U,
+    yRcv        = 84U,
+    xCMP        = 180U,
+    yCMP        = 184U,
+    il          = 188U,
+    xl          = 192U
 };
 
 /*! Trace Header offsets to elevations
@@ -182,5 +208,4 @@ extern int16_t calcScale(const coord_t coord);
 //extern void extractTraceParam(const uchar * md, TraceParam * prm);
 //extern void insertTraceParam(const TraceParam * prm, uchar * md);
 extern void setScale(const TrScal item, const int16_t scale, uchar * buf, size_t start = 0);
-}}
 #endif

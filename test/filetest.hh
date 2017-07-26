@@ -25,50 +25,14 @@
 
 using namespace testing;
 using namespace PIOL;
-using PIOL::File::deScale;
-using File::coord_t;
+using PIOL::SEGY::deScale;
+/*using File::coord_t;
 using File::grid_t;
 using File::calcScale;
 using File::scalComp;
 using File::setCoord;
 using File::setGrid;
-
-enum Hdr : size_t
-{
-    Increment  = 3216U,
-    NumSample  = 3220U,
-    Type       = 3224U,
-    Sort       = 3228U,
-    Units      = 3254U,
-    SEGYFormat = 3500U,
-    FixedTrace = 3502U,
-    Extensions = 3504U,
-};
-
-enum TrHdr : size_t
-{
-    SeqNum      = 0U,
-    SeqFNum     = 4U,
-    ORF         = 8U,
-    TORF        = 12U,
-    RcvElv      = 40U,
-    SurfElvSrc  = 44U,
-    SrcDpthSurf = 48U,
-    DtmElvRcv   = 52U,
-    DtmElvSrc   = 56U,
-    WtrDepSrc   = 60U,
-    WtrDepRcv   = 64U,
-    ScaleElev   = 68U,
-    ScaleCoord  = 70U,
-    xSrc        = 72U,
-    ySrc        = 76U,
-    xRcv        = 80U,
-    yRcv        = 84U,
-    xCMP        = 180U,
-    yCMP        = 184U,
-    il          = 188U,
-    xl          = 192U
-};
+*/
 
 class MockReadObj : public Obj::ReadInterface
 {
@@ -76,7 +40,7 @@ class MockReadObj : public Obj::ReadInterface
     MockReadObj(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Data::Interface> data_)
                : Obj::ReadInterface(piol_, name_, data_) {}
     MOCK_CONST_METHOD0(getFileSz, size_t(void));
-    MOCK_CONST_METHOD1(readHO, void(uchar *));
+    MOCK_CONST_METHOD0(readHO, std::shared_ptr<FileMetadata>(void));
     MOCK_CONST_METHOD4(readDOMD, void(csize_t, csize_t, csize_t, uchar *));
 
     MOCK_CONST_METHOD4(readDODF, void(csize_t, csize_t, csize_t, uchar *));
@@ -95,7 +59,7 @@ class MockWriteObj : public Obj::WriteInterface
     }
 
     MOCK_CONST_METHOD1(setFileSz, void(csize_t));
-    MOCK_CONST_METHOD1(writeHO, void(const uchar *));
+    MOCK_CONST_METHOD1(writeHO, void(const std::shared_ptr<FileMetadata>));
     MOCK_CONST_METHOD4(writeDOMD, void(csize_t, csize_t, csize_t, const uchar *));
 
     MOCK_CONST_METHOD4(writeDODF, void(csize_t, csize_t, csize_t, const uchar *));
@@ -118,7 +82,6 @@ struct FileReadTest : public Test
     size_t ns = 200U;
     int inc = 10;
     csize_t format = 5;
-    std::vector<uchar> ho;
     std::unique_ptr<T> rfile;
     std::shared_ptr<MockReadObj> rmock;
 
@@ -128,7 +91,6 @@ struct FileReadTest : public Test
         rfile = nullptr;
         opt.initMPI = false;
         piol = std::make_shared<ExSeisPIOL>(opt);
-        ho.resize(SEGSz::getHOSz());
     }
 
     ~FileReadTest()
@@ -138,7 +100,7 @@ struct FileReadTest : public Test
     }
 
     template <bool OPTS = false>
-    void makeFile(std::string name)
+    void openFile(std::string name)
     {
         if (rfile.get())
             rfile.reset();
@@ -167,7 +129,7 @@ struct FileReadTest : public Test
         piol->isErr();
         Mock::AllowLeak(rmock.get());
 
-        if (testEBCDIC)
+  /*      if (testEBCDIC)
         {
             // Create an EBCDID string to convert back to ASCII in the test
             size_t tsz = testString.size();
@@ -190,10 +152,12 @@ struct FileReadTest : public Test
         ho[Increment] = inc >> 8 & 0xFF;
         ho[Increment+1] = inc & 0xFF;
         ho[Type+1] = format;
-
+*/
         EXPECT_CALL(*rmock, getFileSz()).Times(Exactly(1)).WillOnce(Return(SEGSz::getHOSz() +
                                                                        nt*SEGSz::getDOSz(ns)));
-        EXPECT_CALL(*rmock, readHO(_)).Times(Exactly(1)).WillOnce(SetArrayArgument<0>(ho.begin(), ho.end()));
+
+#warning TODO!
+//        EXPECT_CALL(*rmock, readHO(_)).Times(Exactly(1)).WillOnce(SetArrayArgument<0>(ho.begin(), ho.end()));
 
         rfile = std::make_unique<T>(piol, notFile, rmock);
     }
@@ -208,8 +172,8 @@ struct FileReadTest : public Test
             getBigEndian(xlNum(i), &md[xl]);
 
             int16_t scale;
-            int16_t scal1 = deScale(xNum(i));
-            int16_t scal2 = deScale(yNum(i));
+            int16_t scal1 = SEGY::deScale(xNum(i));
+            int16_t scal2 = SEGY::deScale(yNum(i));
 
             if (scal1 > 1 || scal2 > 1)
                 scale = std::max(scal1, scal2);
@@ -482,10 +446,12 @@ struct FileWriteTest : public FileReadTest<R>
 {
     std::unique_ptr<T> wfile;
     std::shared_ptr<MockWriteObj> wmock;
+    std::vector<uchar> ho;
 
     FileWriteTest() : FileReadTest<R>()
     {
         wfile = nullptr;
+        ho.resize(SEGSz::getHOSz());
     }
 
     ~FileWriteTest()
@@ -495,27 +461,26 @@ struct FileWriteTest : public FileReadTest<R>
             Mock::VerifyAndClearExpectations(&wmock);
     }
 
-    void makeFile(std::string name)
+    void createFile(std::string name)
     {
         //name_ = name;
         if (wfile.get() != nullptr)
             wfile.reset();
         this->piol->isErr();
-        Data::MPIIO::Opt d;
-        auto data = std::make_shared<Data::MPIIO>(this->piol, name, d, FileMode::Test);
+
+        typename T::DObj::Data::Opt d;
+        auto dat = std::make_shared<T::DObj::Data>(this->piol, name, d, FileMode::Test);
 
         {
-            typename T::Obj::Opt o;
             typename T::Opt f;
-            auto wobj = std::make_shared<T::Obj>(this->piol, name, o, data);
-            wfile = std::make_unique<T>(this->piol, name, f, wobj);
+            auto wobj = std::make_shared<T::DObj>(this->piol, name, &f, dat);
+            wfile = std::make_unique<T>(this->piol, name, &f, wobj);
         }
 
         {
-            typename R::Obj::Opt ro;
-            typename R::Opt rf;
-            auto robj = std::make_shared<R::Obj>(this->piol, name, ro, data);
-            this->rfile = std::make_unique<R>(this->piol, name, rf, robj);
+            typename R::Opt f;
+            auto robj = std::make_shared<R::DObj>(this->piol, name, &f, dat);
+            this->rfile = std::make_unique<R>(this->piol, name, &f, robj);
         }
 
         writeHO<false>();
@@ -559,7 +524,6 @@ struct FileWriteTest : public FileReadTest<R>
         {
             size_t fsz = SEGSz::getHOSz() + this->nt*SEGSz::getDOSz(this->ns);
             EXPECT_CALL(*wmock, setFileSz(fsz)).Times(Exactly(1));
-            std::vector<uchar> & ho = this->ho;
             for (size_t i = 0U; i < std::min(this->testString.size(), SEGSz::getTextSz()); i++)
                 ho[i] = this->testString[i];
 
@@ -573,7 +537,13 @@ struct FileWriteTest : public FileReadTest<R>
             ho[3503U] = 1;
             ho[3505U] = 0;
 
-            EXPECT_CALL(*wmock, writeHO(_)).Times(Exactly(1)).WillOnce(check0(ho.data(), SEGSz::getHOSz()));
+            auto fo = std::make_shared<Obj::SEGYFileHeader>();
+            fo->inc = this->inc;
+            fo->incFactor = SI::Micro;
+            fo->ns = this->ns;
+            fo->nt = this->nt;
+            fo->text = this->testString;
+            EXPECT_CALL(*wmock, writeHO(checkstruct0(fo))).Times(Exactly(1));
         }
 
         wfile->writeNt(this->nt);
@@ -629,11 +599,11 @@ struct FileWriteTest : public FileReadTest<R>
         scale = scalComp(scale, calcScale(cmp));
 
         getBigEndian(scale, &md[ScaleCoord]);
-        setCoord(File::Coord::Src, src, scale, md);
-        setCoord(File::Coord::Rcv, rcv, scale, md);
-        setCoord(File::Coord::CMP, cmp, scale, md);
+        setCoord(Coord::Src, src, scale, md);
+        setCoord(Coord::Rcv, rcv, scale, md);
+        setCoord(Coord::CMP, cmp, scale, md);
 
-        setGrid(File::Grid::Line, line, md);
+        setGrid(Grid::Line, line, md);
         getBigEndian(int32_t(filePos), &md[SeqFNum]);
     }
 
@@ -799,11 +769,11 @@ struct FileWriteTest : public FileReadTest<R>
 
                 uchar * md = &buf[i*SEGSz::getMDSz()];
                 getBigEndian(scale, &md[ScaleCoord]);
-                setCoord(File::Coord::Src, src, scale, md);
-                setCoord(File::Coord::Rcv, rcv, scale, md);
-                setCoord(File::Coord::CMP, cmp, scale, md);
+                setCoord(Coord::Src, src, scale, md);
+                setCoord(Coord::Rcv, rcv, scale, md);
+                setCoord(Coord::CMP, cmp, scale, md);
 
-                setGrid(File::Grid::Line, line, md);
+                setGrid(Grid::Line, line, md);
                 getBigEndian(int32_t(offset + i), &md[SeqFNum]);
             }
             EXPECT_CALL(*wmock.get(), writeDOMD(offset, this->ns, tn, _))
@@ -842,4 +812,9 @@ typedef FileReadTest<File::ReadSEGY> FileSEGYRead;
 typedef FileReadTest<File::ReadSEGY> FileSEGYIntegRead;
 typedef FileWriteTest<File::WriteSEGY, File::ReadSEGY> FileSEGYWrite;
 typedef FileWriteTest<File::WriteSEGY, File::ReadSEGY> FileSEGYIntegWrite;
+
+typedef FileReadTest<File::ReadSeis> FileSeisRead;
+typedef FileReadTest<File::ReadSeis> FileSeisIntegRead;
+typedef FileWriteTest<File::WriteSeis, File::ReadSeis> FileSeisWrite;
+typedef FileWriteTest<File::WriteSeis, File::ReadSeis> FileSeisIntegWrite;
 

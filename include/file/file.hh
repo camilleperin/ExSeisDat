@@ -235,7 +235,7 @@ class WriteInterface : public Interface
  * \param[in] name The name of the file.
  * \return Return a pointer of the respective file type.
  */
-template <class T, class E = typename T::Obj, class F = typename E::Data>
+template <class T, class E = typename T::DObj, class F = typename E::Data>
 std::unique_ptr<typename std::enable_if<std::is_base_of<File::ReadInterface, T>::value, T>::type>
 makeFile(Piol piol, const std::string name)
 {
@@ -251,7 +251,7 @@ makeFile(Piol piol, const std::string name)
  * \param[in] name The name of the file
  * \return Return a pointer of the respective file type.
  */
-template <class T, class E = typename T::Obj, class F = typename E::Data>
+template <class T, class E = typename T::DObj, class F = typename E::Data>
 std::unique_ptr<typename std::enable_if<std::is_base_of<File::WriteInterface, T>::value, T>::type>
 makeFile(Piol piol, const std::string name)
 {

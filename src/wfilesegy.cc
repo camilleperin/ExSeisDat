@@ -19,10 +19,9 @@ namespace PIOL { namespace File {
 ///////////////////////////////      Constructor & Destructor      ///////////////////////////////
 WriteSEGY::Opt::Opt(void)
 {
-    incFactor = SI::Micro;
 }
 
-WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, const WriteSEGY::Opt & opt, std::shared_ptr<Obj::WriteInterface> obj_)
+WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
     Init(opt);
@@ -32,7 +31,7 @@ WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<
     : WriteInterface(piol_, name_, obj_)
 {
     WriteSEGY::Opt opt;
-    Init(opt);
+    Init(&opt);
 }
 
 WriteSEGY::~WriteSEGY(void)
@@ -47,8 +46,13 @@ WriteSEGY::~WriteSEGY(void)
             if (!piol->comm->getRank())
             {
                 std::vector<uchar> buf(SEGSz::getHOSz());
-                packHeader(buf.data());
-                obj->writeHO(buf.data());
+                auto ho = std::make_shared<Obj::SEGYFileHeader>();
+                ho->inc = inc;
+                ho->text = text;
+                ho->ns = ns;
+                ho->nt = nt;
+
+                obj->writeHO(ho);
             }
             else
                 obj->writeHO(NULL);
@@ -57,27 +61,27 @@ WriteSEGY::~WriteSEGY(void)
 }
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////
-void WriteSEGY::packHeader(uchar * buf) const
+/*void WriteSEGY::packHeader(uchar * buf) const
 {
     for (size_t i = 0; i < text.size(); i++)
         buf[i] = text[i];
 
-    setMd(Hdr::NumSample, int16_t(ns), buf);
-    setMd(Hdr::Type, int16_t(Format::IEEE), buf);
-    setMd(Hdr::Increment, int16_t(std::lround(inc / incFactor)), buf);
+    SEGY::setMd(SEGY::Hdr::NumSample, int16_t(ns), buf);
+    SEGY::setMd(SEGY::Hdr::Type, int16_t(SEGY::Format::IEEE), buf);
+    SEGY::setMd(SEGY::Hdr::Increment, int16_t(std::lround(inc / incFactor)), buf);
 
 //Currently these are hard-coded entries:
-    setMd(Hdr::Units,      0x0001, buf);    //The unit system.
-    setMd(Hdr::SEGYFormat, 0x0100, buf);    //The version of the SEGY format.
-    setMd(Hdr::FixedTrace, 0x0001, buf);    //We always deal with fixed traces at present.
-    setMd(Hdr::Extensions, 0x0000, buf);    //We do not support text extensions at present.
-}
+    SEGY::setMd(SEGY::Hdr::Units,      0x0001, buf);    //The unit system.
+    SEGY::setMd(SEGY::Hdr::SEGYFormat, 0x0100, buf);    //The version of the SEGY format.
+    SEGY::setMd(SEGY::Hdr::FixedTrace, 0x0001, buf);    //We always deal with fixed traces at present.
+    SEGY::setMd(SEGY::Hdr::Extensions, 0x0000, buf);    //We do not support text extensions at present.
+}*/
 
-void WriteSEGY::Init(const WriteSEGY::Opt & opt)
+void WriteSEGY::Init(const WriteSEGY::Opt * opt)
 {
-    incFactor = opt.incFactor;
+    incFactor = opt->incFactor;
     memset(&state, 0, sizeof(Flags));
-    format = Format::IEEE;
+    format = SEGY::Format::IEEE;
     ns = 0LU;
     nt = 0LU;
     inc = geom_t(0);

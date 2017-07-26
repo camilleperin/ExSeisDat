@@ -19,7 +19,7 @@ WriteSeis::Opt::Opt(void)
 {
 }
 
-WriteSeis::WriteSeis(const Piol piol_, const std::string name_, const WriteSeis::Opt & opt, std::shared_ptr<Obj::WriteInterface> obj_)
+WriteSeis::WriteSeis(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
 }

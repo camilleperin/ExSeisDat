@@ -10,7 +10,7 @@
 #include <cstring>
 #include <cmath>
 #include <iostream>
-#include "file/segymd.hh"
+#include "share/segy.hh"
 #include "share/datatype.hh"
 #include "file/dynsegymd.hh"
 
@@ -536,7 +536,7 @@ void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_
                     rule.push_back(dynamic_cast<SEGYFloatRuleEntry *>(t));
                     auto tr = static_cast<Tr>(rule.back()->scalLoc);
                     int16_t scal1 = (scal.find(tr) != scal.end() ? scal[tr] : 1);
-                    int16_t scal2 = deScale(prm->f[(i + skip) * r->numFloat + t->num]);
+                    int16_t scal2 = SEGY::deScale(prm->f[(i + skip) * r->numFloat + t->num]);
 
                     //if the scale is bigger than 1 that means we need to use the largest
                     //to ensure conservation of the most significant digit
@@ -560,7 +560,7 @@ void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_
 
         for (size_t j = 0; j < rule.size(); j++)
         {
-            geom_t gscale = scaleConv(scal[static_cast<Tr>(rule[j]->scalLoc)]);
+            geom_t gscale = SEGY::scaleConv(scal[static_cast<Tr>(rule[j]->scalLoc)]);
             getBigEndian(int32_t(std::lround(prm->f[(i + skip) * r->numFloat + rule[j]->num] / gscale)), &md[rule[j]->loc-start-1LU]);
         }
     }
@@ -595,7 +595,7 @@ void extractParam(size_t sz, const uchar * buf, Param * prm, size_t stride, size
             switch (t->type())
             {
                 case MdType::Float :
-                prm->f[(i + skip) * r->numFloat + t->num] = scaleConv(getHost<int16_t>(&md[dynamic_cast<SEGYFloatRuleEntry *>(t)->scalLoc - r->start-1LU]))
+                prm->f[(i + skip) * r->numFloat + t->num] = SEGY::scaleConv(getHost<int16_t>(&md[dynamic_cast<SEGYFloatRuleEntry *>(t)->scalLoc - r->start-1LU]))
                                                    * geom_t(getHost<int32_t>(&md[loc]));
                 break;
                 case MdType::Short :

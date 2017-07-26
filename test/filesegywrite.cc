@@ -1,4 +1,4 @@
-#include "filesegytest.hh"
+#include "filetest.hh"
 
 //TODO:: Add tests were trace header writes cause a setFileSz call
 

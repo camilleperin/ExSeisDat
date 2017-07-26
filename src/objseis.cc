@@ -25,43 +25,62 @@ std::vector<std::shared_ptr<Data::Interface>> makeMultiData(Piol piol, std::vect
     return data;
 }
 
-ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const ReadSeis::Opt & opt_, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
+void ReadSeis::Init(void)
 {
 //TODO: This function will need to detect the file structure based on the header
     std::vector<uchar> dat(data->getFileSz());
     data->read(0LU, dat.size(), dat.data());
 
-    nlohmann::json jf = nlohmann::json::parse(dat.begin(), dat.end());
+    desc = std::make_shared<SeisFileHeader>(dat);
 
-    SeisF::set(&desc.bytes, "bytes", jf);
-    SeisF::set(&desc.o1, "o1", jf);
-    SeisF::set(&desc.d1, "d1", jf);
-    SeisF::set(&desc.n1, "n1", jf);
+    traceBlocks = makeMultiData(piol, desc->extents, FileMode::Read);
+}
 
-    std::string endian;
-    SeisF::set(&endian, "endianness", jf);
-    desc.endian = (endian == "little" ? SeisF::Endian::Little : SeisF::Endian::Big);
+ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const ReadSeis::Opt * opt_, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
+{
+    Init();
+}
 
-    SeisF::set(&desc.headerFile, "separateHeaders", jf);
-    SeisF::set(desc.extents, "extents", jf);
-    SeisF::set(&desc.packetSz, "packet", jf);
-
-    traceBlocks = makeMultiData(piol, desc.extents, FileMode::Read);
+ReadSeis::ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
+{
+    Init();
 }
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////
+
+SeisFileHeader::SeisFileHeader(const std::vector<uchar> & dat)
+{
+    nlohmann::json jf = nlohmann::json::parse(dat.begin(), dat.end());
+    SeisF::set(&bytes, "bytes", jf);
+    SeisF::set(&o1, "o1", jf);
+    SeisF::set(&d1, "d1", jf);
+    SeisF::set(&n1, "n1", jf);
+
+    std::string end;
+    SeisF::set(&end, "endianness", jf);
+    endian = (end == "little" ? SeisF::Endian::Little : SeisF::Endian::Big);
+
+    SeisF::set(&headerFile, "separateHeaders", jf);
+    SeisF::set(extents, "extents", jf);
+    SeisF::set(&packetSz, "packet", jf);
+}
 
 size_t ReadSeis::getFileSz(void) const
 {
     return 0LU;
 }
 
-void ReadSeis::readHO(uchar * ho) const
+void WriteSeis::setFileSz(csize_t sz) const
 {
     assert(0);
 }
 
-void WriteSeis::writeHO(const uchar * ho) const
+std::shared_ptr<FileMetadata> ReadSeis::readHO(void) const
+{
+    return desc;
+}
+
+void WriteSeis::writeHO(const std::shared_ptr<FileMetadata> ho) const
 {
     assert(0);
 }

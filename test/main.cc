@@ -20,6 +20,10 @@ const std::string smallSEGYFile = "tmp/smallsegy.tmp";
 const std::string largeSEGYFile = "tmp/largesegy.tmp";
 const std::string bigTraceSEGYFile = "tmp/bigtracesegy.tmp";
 
+const std::string smallSeisFile = "tmp/smallseis.tmp";
+const std::string largeSeisFile = "tmp/largeseis.tmp";
+const std::string bigTraceSeisFile = "tmp/bigtraceseis.tmp";
+
 int32_t ilNum(size_t i)
 {
     return 1600L + (i / 3000L);

@@ -34,19 +34,6 @@ struct SeisTraceHeader
     Type type;
 };
 
-struct SeisTopHeader
-{
-    size_t bytes;
-    double o1;
-    double d1;
-    size_t n1;
-    Endian endian;
-    bool headerFile;
-    std::vector<std::string> headers;
-    std::vector<std::string> extents;
-    size_t packetSz;
-};
-
 template <typename T>
 void set(T * val, std::string name, nlohmann::json & j)
 {

@@ -9,17 +9,13 @@
 #include "global.hh"
 #include "file/filesegy.hh"
 #include "object/object.hh"
-#include "file/iconv.hh"
-#warning
-#include <iostream>
 namespace PIOL { namespace File {
 ///////////////////////////////      Constructor & Destructor      ///////////////////////////////
 ReadSEGY::Opt::Opt(void)
 {
-    incFactor = SI::Micro;
 }
 
-ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, const ReadSEGY::Opt & opt, std::shared_ptr<Obj::ReadInterface> obj_)
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::ReadInterface> obj_)
     : ReadInterface(piol_, name_, obj_)
 {
     Init(opt);
@@ -29,46 +25,27 @@ ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Ob
     : ReadInterface(piol_, name_, obj_)
 {
     ReadSEGY::Opt opt;
-    Init(opt);
+    Init(&opt);
 }
 
-ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadSEGY(piol_, name_, std::make_shared<Obj>(piol_, name_))
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadSEGY(piol_, name_, std::make_shared<DObj>(piol_, name_))
 {
 }
 
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////
-void ReadSEGY::procHeader(size_t fsz, uchar * buf)
+void ReadSEGY::Init(const ReadSEGY::Opt * opt)
 {
-    ns = getMd(Hdr::NumSample, buf);
-    nt = SEGSz::getNt(fsz, ns);
-    inc = geom_t(getMd(Hdr::Increment, buf)) * incFactor;
-    format = static_cast<Format>(getMd(Hdr::Type, buf));
-
-    getAscii(piol.get(), name, SEGSz::getTextSz(), buf);
-    for (size_t i = 0LU; i < SEGSz::getTextSz(); i++)
-        text.push_back(buf[i]);
-}
-
-void ReadSEGY::Init(const ReadSEGY::Opt & opt)
-{
-    incFactor = opt.incFactor;
-    size_t hoSz = SEGSz::getHOSz();
-    size_t fsz = obj->getFileSz();
-
-    if (fsz >= hoSz)
-    {
-        auto buf = std::vector<uchar>(hoSz);
-        obj->readHO(buf.data());
-        procHeader(fsz, buf.data());
-    }
+    auto desc = obj->readHO();
+    if (!desc)
+        piol->log->record(name, Log::Layer::File, Log::Status::Error,
+                         "Object layer returns null structure for metadata", Log::Verb::None);
     else
     {
-        format = Format::IEEE;
-        ns = 0LU;
-        nt = 0LU;
-        inc = geom_t(0);
-        text = "";
+        inc = desc->inc;
+        ns = desc->ns;
+        nt = desc->nt;
+        text = desc->text;
     }
 }
 
@@ -90,7 +67,7 @@ size_t ReadSEGY::readNt(void)
  *  \param[in] skip Skip \c skip entries in the parameter structure
  */
 template <typename T>
-void readTraceT(Obj::ReadInterface * obj, const Format format, csize_t ns, const T offset, std::function<size_t(size_t)> offunc,
+void readTraceT(Obj::ReadInterface * obj, const SEGY::Format format, csize_t ns, const T offset, std::function<size_t(size_t)> offunc,
                                       csize_t sz, trace_t * trc, Param * prm, csize_t skip)
 {
     uchar * tbuf = reinterpret_cast<uchar *>(trc);
@@ -119,7 +96,7 @@ void readTraceT(Obj::ReadInterface * obj, const Format format, csize_t ns, const
 
     if (trc != TRACE_NULL && trc != nullptr)
     {
-        if (format == Format::IBM)
+        if (format == SEGY::Format::IBM)
             for (size_t i = 0; i < ns * sz; i ++)
                 trc[i] = convertIBMtoIEEE(trc[i], true);
         else

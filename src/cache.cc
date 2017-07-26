@@ -10,9 +10,6 @@
 #include "share/api.hh"
 #include "file/dynsegymd.hh"
 
-//TODO: Remove when all options implemented
-#include <iostream>
-
 namespace PIOL {
 //TODO: Generalise this for parameters and traces
 std::shared_ptr<TraceBlock> Cache::getCache(std::shared_ptr<File::Rule> rule, FileDeque & desc, bool cPrm, bool cTrc)

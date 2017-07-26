@@ -10,6 +10,7 @@
 #ifndef PIOLOBJ_INCLUDE_GUARD
 #define PIOLOBJ_INCLUDE_GUARD
 #include "global.hh"
+#include "share/filemetadata.hh"
 
 namespace PIOL { namespace Obj {
 /*! \brief The Obj layer interface. Specific Obj implementations
@@ -31,10 +32,6 @@ class ReadInterface
     ReadInterface(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : piol(piol_), name(name_), data(data_)
     { }
 
-    /*! \brief A virtual destructor to allow deletion.
-     */
-    //virtual ~ReadInterface(void) { }
-
     /*! \brief Find out the file size.
      *  \return The file size in bytes.
      */
@@ -44,7 +41,7 @@ class ReadInterface
      *  \param[out] ho An array which the caller guarantees is long enough
      *  to hold the header object.
      */
-    virtual void readHO(uchar * ho) const = 0;
+    virtual std::shared_ptr<FileMetadata> readHO(void) const = 0;
 
     /*! \brief Read a sequence of DOMDs.
      *  \param[in] offset The starting data-object we are interested in.
@@ -133,7 +130,7 @@ class WriteInterface
     /*! \brief Write the header object.
      *  \param[in] ho An array which the caller guarantees is long enough to hold the header object.
      */
-    virtual void writeHO(const uchar * ho) const = 0;
+    virtual void writeHO(const std::shared_ptr<FileMetadata> ho) const = 0;
 
     /*! \brief Write the data-object metadata.
      *  \param[in] offset The starting data-object we are interested in.

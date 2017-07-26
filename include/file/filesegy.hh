@@ -12,23 +12,21 @@
 #include <type_traits>
 #include "global.hh"
 #include "file/file.hh"
-#include "file/segymd.hh"
+#include "share/segy.hh"
 #include "file/dynsegymd.hh"
 #include "object/objsegy.hh" //For the makes
 namespace PIOL { namespace File {
-enum class Format : int16_t;    //!< Data Format options
 /*! The SEG-Y implementation of the file layer
  */
 class ReadSEGY : public ReadInterface
 {
     public :
-    typedef Obj::ReadSEGY Obj;
+    typedef Obj::ReadSEGY DObj;
     /*! \brief The SEG-Y options structure.
      */
-    struct Opt
+    struct Opt : DObj::Opt
     {
         typedef ReadSEGY Type;  //!< The Type of the class this structure is nested in
-        unit_t incFactor;       //!< The increment factor to multiply inc by (default to SEG-Y rev 1 standard definition)
 
         /*! Constructor which provides the default Rules
          */
@@ -36,28 +34,21 @@ class ReadSEGY : public ReadInterface
     };
 
     private :
-    Format format;              //<! Type formats
+    SEGY::Format format;        //!< Type formats
     unit_t incFactor;           //!< The increment factor
-
-    /*! \brief Read the text and binary header and store the metadata variables in this SEGY object.
-     *  \param[in] fsz The size of the file in bytes
-     *  \param[in, out] buf The buffer to parse. The buffer is destructively modified
-     */
-    void procHeader(csize_t fsz, uchar * buf);
-
     /*! \brief This function initialises the SEGY specific portions of the class.
-     *  \param[in] segyOpt The SEGY-File options
+     *  \param[in] opt The SEGY-File options
      */
-    void Init(const ReadSEGY::Opt & opt);
+    void Init(const ReadSEGY::Opt * opt);
 
     public :
     /*! \brief The SEGY-Object class constructor.
      *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
      *  \param[in] name_   The name of the file associated with the instantiation.
-     *  \param[in] segyOpt The SEGY-File options
+     *  \param[in] opt The SEGY-File options
      *  \param[in] obj_    A shared pointer to the object layer
      */
-    ReadSEGY(const Piol piol_, const std::string name_, const ReadSEGY::Opt & segyOpt, std::shared_ptr<Obj::ReadInterface> obj_);
+    ReadSEGY(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::ReadInterface> obj_);
 
     /*! \brief The SEGY-Object class constructor.
      *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
@@ -103,14 +94,13 @@ class ReadSEGYModel : public Model3dInterface, public ReadSEGY
 class WriteSEGY : public WriteInterface
 {
     public :
-    typedef Obj::WriteSEGY Obj;
+    typedef Obj::WriteSEGY DObj;
 
     /*! \brief The SEG-Y options structure.
      */
-    struct Opt
+    struct Opt : public DObj::Opt
     {
         typedef WriteSEGY Type; //!< The Type of the class this structure is nested in
-        unit_t incFactor;       //!< The increment factor to multiply inc by (default to SEG-Y rev 1 standard definition)
 
         /*! Constructor which provides the default Rules
          */
@@ -120,7 +110,7 @@ class WriteSEGY : public WriteInterface
     private :
     bool nsSet = false;
 
-    Format format;              //<! Type formats
+    SEGY::Format format;              //!< Type formats
 
     /*! State flags structure for SEGY
      */
@@ -133,15 +123,10 @@ class WriteSEGY : public WriteInterface
 
     unit_t incFactor;           //!< The increment factor
 
-    /*! \brief This function packs the state of the class object into the header.
-     *  \param[in] buf The header object buffer
-     */
-    void packHeader(uchar * buf) const;
-
     /*! \brief This function initialises the SEGY specific portions of the class.
-     *  \param[in] segyOpt The SEGY-File options
+     *  \param[in] opt_ The SEGY-File options
      */
-    void Init(const WriteSEGY::Opt & segyOpt);
+    void Init(const WriteSEGY::Opt * opt_);
 
     /*! Calculate the number of traces currently stored (or implied to exist).
      *  \return Return the number of traces
@@ -152,10 +137,10 @@ class WriteSEGY : public WriteInterface
     /*! \brief The SEGY-Object class constructor.
      *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
      *  \param[in] name_   The name of the file associated with the instantiation.
-     *  \param[in] segyOpt The SEGY-File options
+     *  \param[in] opt_ The SEGY-File options
      *  \param[in] obj_    A shared pointer to the object layer
      */
-    WriteSEGY(const Piol piol_, const std::string name_, const WriteSEGY::Opt & segyOpt, std::shared_ptr<Obj::WriteInterface> obj_);
+    WriteSEGY(const Piol piol_, const std::string name_, const Opt * opt_, std::shared_ptr<Obj::WriteInterface> obj_);
 
     /*! \brief The SEGY-Object class constructor.
      *  \param[in] piol_   This PIOL ptr is not modified but is used to instantiate another shared_ptr.
@@ -168,7 +153,7 @@ class WriteSEGY : public WriteInterface
      */
     ~WriteSEGY(void);
 
-    WriteSEGY(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<Obj>(piol_, name_))
+    WriteSEGY(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DObj>(piol_, name_))
     { }
 
     void writeText(const std::string text_);

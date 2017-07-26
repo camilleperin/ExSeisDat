@@ -1,59 +1,75 @@
 #include "objsegytest.hh"
 TEST_F(ReadObjSpecTest, SEGYHORead1)
 {
-    readHOPatternTest(7, 107);
+    makeSEGY(100, 100, 10, 5);
 }
 
 TEST_F(ReadObjSpecTest, SEGYHORead2)
 {
-    readHOPatternTest(10, 46);
+    makeSEGY(100, 0, 10, 1);
 }
 
 TEST_F(ReadObjSpecTest, SEGYHORead3)
 {
-    readHOPatternTest(0, 0);
+    makeSEGY(100, 100, 0, 1);
+}
+
+TEST_F(ReadObjSpecTest, SEGYHORead4)
+{
+    makeSEGY(100, 100, 10, 0);
+}
+
+TEST_F(ReadObjSpecTest, SEGYHORead5)
+{
+    makeSEGY(0, 0, 0, 0);
 }
 
 TEST_F(ReadObjSpecTest, SEGYReadSingle1)
 {
-    readTest<Block::DOMD>(10U, 1U, 200, 13, 117);
-    readTest<Block::DODF>(10U, 1U, 200, 13, 117);
-    readTest<Block::DO>(10U, 1U, 200, 13, 117);
+    makeSEGY(12, 200);
+    readTest<Block::DOMD>(10U, 1U, 13, 117);
+    readTest<Block::DODF>(10U, 1U, 13, 117);
+    readTest<Block::DO>(10U, 1U, 13, 117);
 }
 
 TEST_F(ReadObjSpecTest, SEGYReadSingle2)
 {
-    readTest<Block::DOMD>(10U, 1U, 200, 13, 13);
-    readTest<Block::DODF>(10U, 1U, 200, 13, 13);
-    readTest<Block::DO>(10U, 1U, 200, 13, 13);
+    makeSEGY(12, 200);
+    readTest<Block::DOMD>(10U, 1U, 13, 13);
+    readTest<Block::DODF>(10U, 1U, 13, 13);
+    readTest<Block::DO>(10U, 1U, 13, 13);
 }
 
 TEST_F(ReadObjSpecTest, SEGYReadZeroNt)
 {
-    readTest<Block::DOMD>(10U, 0U, 2000);
-    readTest<Block::DODF>(10U, 0U, 2000);
-    readTest<Block::DO>(10U, 0U, 2000);
+    makeSEGY(20, 2000);
+    readTest<Block::DOMD>(10U, 0U);
+    readTest<Block::DODF>(10U, 0U);
+    readTest<Block::DO>(10U, 0U);
 }
 
 TEST_F(ReadObjSpecTest, SEGYReadZeroNs)
 {
-    readTest<Block::DOMD>(10U, 100U, 0U);
-    readTest<Block::DODF>(10U, 100U, 0U);
-    readTest<Block::DO>(10U, 100U, 0U);
+    makeSEGY(120, 0);
+    readTest<Block::DOMD>(10U, 100U);
+    readTest<Block::DODF>(10U, 100U);
+    readTest<Block::DO>(10U, 100U);
 }
 
 TEST_F(ReadObjSpecTest, SEGYRead)
 {
-    readTest<Block::DOMD>(10U, 100U, 2000);
-    readTest<Block::DODF>(10U, 100U, 2000);
-    readTest<Block::DO>(10U, 100U, 2000);
+    makeSEGY(120, 2000);
+    readTest<Block::DOMD>(10U, 100U);
+    readTest<Block::DODF>(10U, 100U);
+    readTest<Block::DO>(10U, 100U);
 }
 
 TEST_F(ReadObjSpecTest, FarmSEGYBigRead)
 {
-    readTest<Block::DOMD>(10U, 300000, 5000);
-    readTest<Block::DODF>(10U, 300000, 5000);
-    readTest<Block::DO>(10U, 300000, 5000);
+    makeSEGY(400000, 5000);
+    readTest<Block::DOMD>(10U, 300000);
+    readTest<Block::DODF>(10U, 300000);
+    readTest<Block::DO>(10U, 300000);
 }
 
 //random read
@@ -61,48 +77,54 @@ TEST_F(ReadObjSpecTest, FarmSEGYBigRead)
 TEST_F(ReadObjSpecTest, SEGYRandomReadSingle1)
 {
     auto vec = getRandomVec(1U, 1337);
-    readRandomTest<Block::DOMD>(200, vec, 117);
-    readRandomTest<Block::DODF>(200, vec, 117);
-    readRandomTest<Block::DO>(200, vec, 117);
+    makeSEGY(*std::max_element(vec.begin(), vec.end())+10, 200);
+    readRandomTest<Block::DOMD>(vec, 117);
+    readRandomTest<Block::DODF>(vec, 117);
+    readRandomTest<Block::DO>(vec, 117);
 }
 
 TEST_F(ReadObjSpecTest, SEGYRandomReadSingle2)
 {
     auto vec = getRandomVec(1U, 1337);
-    readRandomTest<Block::DOMD>(200, vec, 13);
-    readRandomTest<Block::DODF>(200, vec, 13);
-    readRandomTest<Block::DO>(200, vec, 13);
+    makeSEGY(*std::max_element(vec.begin(), vec.end())+10, 200);
+    readRandomTest<Block::DOMD>(vec, 13);
+    readRandomTest<Block::DODF>(vec, 13);
+    readRandomTest<Block::DO>(vec, 13);
 }
 
 TEST_F(ReadObjSpecTest, SEGYRandomReadZeroNt)
 {
     auto vec = getRandomVec(0U, 1337);
-    readRandomTest<Block::DOMD>(2000, vec);
-    readRandomTest<Block::DODF>(2000, vec);
-    readRandomTest<Block::DO>(2000, vec);
+    makeSEGY(0, 2000);
+    readRandomTest<Block::DOMD>(vec);
+    readRandomTest<Block::DODF>(vec);
+    readRandomTest<Block::DO>(vec);
 }
 
 TEST_F(ReadObjSpecTest, SEGYRandomReadZeroNs)
 {
     auto vec = getRandomVec(100U, 1337);
-    readRandomTest<Block::DOMD>(0U, vec);
-    readRandomTest<Block::DODF>(0U, vec);
-    readRandomTest<Block::DO>(0U, vec);
+    makeSEGY(*std::max_element(vec.begin(), vec.end())+10, 0);
+    readRandomTest<Block::DOMD>(vec);
+    readRandomTest<Block::DODF>(vec);
+    readRandomTest<Block::DO>(vec);
 }
 
 TEST_F(ReadObjSpecTest, SEGYRandomRead)
 {
     auto vec = getRandomVec(100U, 1337);
-    readRandomTest<Block::DOMD>(2000, vec);
-    readRandomTest<Block::DODF>(2000, vec);
-    readRandomTest<Block::DO>(2000, vec);
+    makeSEGY(*std::max_element(vec.begin(), vec.end())+10, 2000);
+    readRandomTest<Block::DOMD>(vec);
+    readRandomTest<Block::DODF>(vec);
+    readRandomTest<Block::DO>(vec);
 }
 
 TEST_F(ReadObjSpecTest, FarmSEGYRandomBigRead)
 {
     auto vec = getRandomVec(300000U, 1337);
-    readRandomTest<Block::DOMD>(5000, vec);
-    readRandomTest<Block::DODF>(5000, vec);
-    readRandomTest<Block::DO>(5000, vec);
+    makeSEGY(*std::max_element(vec.begin(), vec.end())+10000, 5000);
+    readRandomTest<Block::DOMD>(vec);
+    readRandomTest<Block::DODF>(vec);
+    readRandomTest<Block::DO>(vec);
 }
 

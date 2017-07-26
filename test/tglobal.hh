@@ -11,6 +11,7 @@ extern const size_t magicNum1;
 extern const size_t smallSize;
 extern const size_t largeSize;
 extern const size_t largeSEGYSize;
+extern const size_t largeSeisSize;
 
 extern const std::string notFile;
 extern const std::string zeroFile;
@@ -21,6 +22,10 @@ extern const std::string tempFile;      //File which is deleted after each creat
 extern const std::string smallSEGYFile;
 extern const std::string largeSEGYFile;
 extern const std::string bigTraceSEGYFile;
+
+extern const std::string smallSeisFile;
+extern const std::string largeSeisFile;
+extern const std::string bigTraceSeisFile;
 
 extern int32_t ilNum(size_t);
 extern int32_t xlNum(size_t);
@@ -33,6 +38,11 @@ extern std::vector<size_t> getRandomVec(size_t nt, size_t max, int seed);
 constexpr size_t prefix(const size_t pow)
 {
     return (pow ? 1024U*prefix(pow-1U) : 1U);
+}
+
+MATCHER_P(checkstruct0, arg2, "")
+{
+    return *arg == *arg2;
 }
 
 ACTION_P2(check0, buf, sz)

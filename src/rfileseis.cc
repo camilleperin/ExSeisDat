@@ -16,7 +16,7 @@ ReadSeis::Opt::Opt(void)
 {
 }
 
-ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const ReadSeis::Opt & opt, std::shared_ptr<Obj::ReadInterface> obj_)
+ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::ReadInterface> obj_)
     : ReadInterface(piol_, name_, obj_)
 {
 }

@@ -51,8 +51,8 @@ extern void taperMan(size_t nt, size_t ns, trace_t * trc, TaperFunc func, size_t
 template <class T>
 std::shared_ptr<T> makeTest(Piol piol, std::string name)
 {
-    auto data = std::make_shared<typename T::Obj::Data>(piol, name, FileMode::Test);
-    auto obj = std::make_shared<typename T::Obj>(piol, name, data);
+    auto data = std::make_shared<typename T::DObj::Data>(piol, name, FileMode::Test);
+    auto obj = std::make_shared<typename T::DObj>(piol, name, data);
     return std::make_shared<T>(piol, name, obj);
 }
 

@@ -7,24 +7,11 @@
  *   as an alternative implementation for test purposes
  *   \details
  *//*******************************************************************************************/
-/*#include <cstring>
-#include <vector>
-#include <memory>
-#include <cmath>
-#include <limits>
-#include "global.hh"
-#include "file/filesegy.hh"
-#include "object/object.hh"
-#include "share/segy.hh"
-#include "file/iconv.hh"
-#include "share/units.hh"
-#include "share/datatype.hh"
-#include "file/segymd.hh"
-*/
 #include "cppfileapi.hh"
 #include "segymdextra.hh"
-
-namespace PIOL { namespace File {
+#include "share/segy.hh"
+#include "share/datatype.hh"
+using namespace PIOL;
 /*! \brief Get the specified scale multipler from the Trace header.
  *  \param[in] scal The scalar of interest.
  *  \param[in] src The buffer of the header object.
@@ -38,7 +25,7 @@ namespace PIOL { namespace File {
 geom_t getMd(const TrScal scal, const uchar * src)
 {
     auto scale = getHost<int16_t>(&src[size_t(scal)-1U]);
-    return scaleConv(scale);
+    return SEGY::scaleConv(scale);
 }
 
 /*! \brief Get the specified coordinate from the Trace header.
@@ -82,7 +69,7 @@ void setScale(const TrScal item, const int16_t scale, uchar * buf, size_t start)
 void setCoord(const Coord item, const coord_t coord, const int16_t scale, uchar * buf)
 {
     auto pair = getPair(item);
-    geom_t gscale = scaleConv(scale);
+    geom_t gscale = SEGY::scaleConv(scale);
     getBigEndian(int32_t(std::lround(coord.x / gscale)), &buf[size_t(pair.first) - 1U]);
     getBigEndian(int32_t(std::lround(coord.y / gscale)), &buf[size_t(pair.second) - 1U]);
 }
@@ -155,8 +142,8 @@ int16_t calcScale(const coord_t coord)
 {
     //I get the minimum value so that I definitely store the result.
     //This is at the expense of precision.
-    int16_t scal1 = deScale(coord.x);
-    int16_t scal2 = deScale(coord.y);
+    int16_t scal1 = SEGY::deScale(coord.x);
+    int16_t scal2 = SEGY::deScale(coord.y);
     return scalComp(scal1, scal2);
 }
 
@@ -195,4 +182,3 @@ int16_t calcScale(const coord_t coord)
     //narrowing conversion of tn
     getBigEndian(int32_t(prm->tn), &md[size_t(TrHdr::SeqFNum) - 1U]);
 }*/
-}}
