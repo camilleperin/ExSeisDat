@@ -261,7 +261,7 @@ TEST_F(FileSeisRead, FileReadTraceBigNSRuleRm)
     nt = 100;
     ns = 10000;
     makeMock();
-    readTraceTest<false, true, true>(10, nt);
+    readTraceTest<false, true>(10, nt);
 }
 
 TEST_F(FileSeisRead, FileReadTraceBigNSWPrmRuleRm)
@@ -270,7 +270,7 @@ TEST_F(FileSeisRead, FileReadTraceBigNSWPrmRuleRm)
     ns = 10000;
     makeMock();
     initTrBlock();
-    readTraceTest<true, true, true>(10, nt);
+    readTraceTest<true, true>(10, nt);
 }
 
 TEST_F(FileSeisRead, FileReadTraceBigOffsetRuleRm)
@@ -278,7 +278,7 @@ TEST_F(FileSeisRead, FileReadTraceBigOffsetRuleRm)
     nt = 3738270;
     ns = 3000;
     makeMock();
-    readTraceTest<false, true, true>(3728270, 3000);
+    readTraceTest<false, true>(3728270, 3000);
 }
 
 TEST_F(FileSeisRead, FileReadTraceWPrmBigOffsetRuleRm)
@@ -287,5 +287,5 @@ TEST_F(FileSeisRead, FileReadTraceWPrmBigOffsetRuleRm)
     ns = 3000;
     makeMock();
     initTrBlock();
-    readTraceTest<true, true, true>(3728270, 3000);
+    readTraceTest<true, true>(3728270, 3000);
 }

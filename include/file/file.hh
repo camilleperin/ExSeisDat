@@ -26,6 +26,8 @@ class Interface
     std::string text;                     //!< Human readable text extracted from the file
     geom_t inc;                           //!< The increment between samples in a trace
 
+    public :
+
     /*! \brief The constructor.
      *  \param[in] piol_ This PIOL ptr is not modified but is used to instantiate another shared_ptr.
      *  \param[in] name_ The name of the file associated with the instantiation.
@@ -80,12 +82,12 @@ class ReadInterface : public Interface
     /*! \brief Read the number of samples per trace
      *  \return The number of samples per trace
      */
-    virtual size_t readNs(void) const;
+    size_t readNs(void) const;
 
     /*! \brief Read the number of traces in the file
      *  \return The number of traces
      */
-    virtual size_t readNt(void) = 0;
+    size_t readNt(void) const;
 
     /*! \brief Read the number of increment between trace samples
      *  \return The increment between trace samples

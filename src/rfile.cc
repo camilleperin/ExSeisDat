@@ -67,6 +67,11 @@ size_t ReadInterface::readNs(void) const
     return ns;
 }
 
+size_t ReadInterface::readNt(void) const
+{
+    return nt;
+}
+
 geom_t ReadInterface::readInc(void) const
 {
    return inc;

@@ -31,6 +31,12 @@ WriteSeis::WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<
 
 WriteSeis::~WriteSeis(void)
 {
+    deinit();
+}
+
+void WriteSeis::deinit(void)
+{
+
 }
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////

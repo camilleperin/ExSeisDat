@@ -42,13 +42,6 @@ struct SeisFileHeader : public FileMetadata
  */
 class ReadSeis : public ReadInterface
 {
-    protected :
-    std::vector<std::shared_ptr<Data::Interface>> traceBlocks;  //!< Pointer to the Data layer object (polymorphic).
-    std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
-    std::shared_ptr<SeisFileHeader> desc;
-
-    void Init(void);
-
     public :
     typedef Data::MPIIO Data;
     /*! \brief The ReadSeis options structure. Currently empty.
@@ -92,6 +85,13 @@ class ReadSeis : public ReadInterface
     void readDOMD(csize_t * offset, csize_t ns, csize_t sz, uchar * md) const;
 
     void readDODF(csize_t * offset, csize_t ns, csize_t sz, uchar * df) const;
+
+    protected :
+    std::vector<std::shared_ptr<Data::Interface>> traceBlocks;  //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
+    std::shared_ptr<SeisFileHeader> desc;
+
+    void Init(const Opt *);
 };
 
 /*! \brief The WriteSeis Obj class.

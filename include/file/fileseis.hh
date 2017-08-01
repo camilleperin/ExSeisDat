@@ -50,19 +50,21 @@ class ReadSeis : public ReadInterface
     ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<DObj>(piol_, name_))
     { }
 
-    size_t readNt(void);
-
     void readTrace(csize_t offset, csize_t sz, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 
     void readTrace(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 
 //    void readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
+    protected :
+    void init(const Opt *);
 };
 
 /*! The Seis implementation of the file layer
  */
 class WriteSeis : public WriteInterface
 {
+    protected :
+    void deinit(void);
     public :
     typedef Obj::WriteSeis DObj;
     /*! \brief The Seis options structure.

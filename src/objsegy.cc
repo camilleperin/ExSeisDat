@@ -33,10 +33,16 @@ ReadSEGY::ReadSEGY(Piol piol_, std::string name_, std::shared_ptr<Data::Interfac
     const Opt opt;
     Init(&opt);
 }
+
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Read))
+{
+    const Opt opt;
+    Init(&opt);
+}
+
 #pragma GCC diagnostic pop
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////
-
 SEGYFileHeader::SEGYFileHeader(ExSeisPIOL * piol, std::string name, const ReadSEGY::Opt * opt, csize_t fsz, std::vector<uchar> & buf)
 {
     incFactor = opt->incFactor;
@@ -71,6 +77,7 @@ void ReadSEGY::Init(const ReadSEGY::Opt * opt)
     data->read(0LU, SEGSz::getHOSz(), buf.data());
     desc = std::make_shared<SEGYFileHeader>(piol.get(), name, opt, getFileSz(), buf);
 }
+#warning simplify all calls that use ns
 
 size_t ReadSEGY::getFileSz(void) const
 {

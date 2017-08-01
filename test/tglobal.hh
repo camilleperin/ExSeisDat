@@ -39,10 +39,25 @@ constexpr size_t prefix(const size_t pow)
 {
     return (pow ? 1024U*prefix(pow-1U) : 1U);
 }
-
-MATCHER_P(checkstruct0, arg2, "")
+/*
+MATCHER_P(checkfilemetadata, buf, "")
 {
-    return *arg == *arg2;
+    *result_listener << arg->ns << " " << buf->ns << " " << arg->inc  << " " << buf->inc << " "
+                     << arg->nt << " " << buf->nt << " " << buf->text << " "<< arg->text;
+    return arg->ns == buf->ns && arg->nt == buf->nt &&
+           arg->text == buf->text && arg->inc == buf->inc;
+}
+*/
+ACTION_P2(checkfilemetadata, buf, sz)
+{
+    ASSERT_EQ(buf->ns, arg0->ns) << "Error with ns\n";
+    ASSERT_EQ(buf->nt, arg0->nt) << "Error with nt\n";
+    ASSERT_EQ(buf->inc, arg0->inc) << "Error with inc\n";
+
+    size_t sz = strlen(buf->text.c_str());
+    ASSERT_EQ(sz, strlen(arg0->text.c_str()));
+    for (size_t i = 0; i < sz; i++)
+        ASSERT_EQ(buf->text[i], arg0->text[i]) << "Loop number " << i << std::endl;
 }
 
 ACTION_P2(check0, buf, sz)

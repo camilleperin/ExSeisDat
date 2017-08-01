@@ -26,6 +26,22 @@ class MockFile : public File::ReadInterface
     MOCK_CONST_METHOD0(readNs, size_t(void));
     MOCK_METHOD0(readNt, size_t(void));
     MOCK_CONST_METHOD0(readInc, geom_t(void));
+    MOCK_CONST_METHOD0(readText, std::string &(void));
+    MOCK_CONST_METHOD0(readname, std::string &(void));
+
+    MOCK_CONST_METHOD4(readParam, void(csize_t, csize_t, File::Param *, csize_t));
+    MOCK_CONST_METHOD4(readParam, void(csize_t, csize_t *, File::Param *, csize_t));
+    MOCK_CONST_METHOD5(readTrace, void(csize_t, csize_t, trace_t *, File::Param *, csize_t));
+    MOCK_CONST_METHOD5(readTrace, void(csize_t, csize_t *, trace_t *, File::Param *, csize_t));
+    MOCK_CONST_METHOD5(readTraceNonMono, void(csize_t, csize_t *, trace_t *, File::Param *, csize_t));
+};
+
+/*class MockFile : public File::ReadInterface
+{
+    public :
+    MOCK_CONST_METHOD0(readNs, size_t(void));
+    MOCK_METHOD0(readNt, size_t(void));
+    MOCK_CONST_METHOD0(readInc, geom_t(void));
 
     MOCK_METHOD1(writeText, void(const std::string));
     MOCK_METHOD1(writeNs, void(const csize_t));
@@ -37,7 +53,7 @@ class MockFile : public File::ReadInterface
     MOCK_CONST_METHOD5(readTrace, void(csize_t, csize_t, trace_t *, File::Param *, csize_t));
     MOCK_CONST_METHOD5(readTrace, void(csize_t, csize_t *, trace_t *, File::Param *, csize_t));
     MOCK_CONST_METHOD5(readTraceNonMono, void(csize_t, csize_t *, trace_t *, File::Param *, csize_t));
-};
+};*/
 
 ACTION_P(cpyprm, src)
 {
@@ -70,11 +86,10 @@ struct SetTest : public Test
         piol = std::make_shared<ExSeisPIOL>(opt);
         set = nullptr;
     }
+
     void init(size_t numFile, size_t numNs, size_t numInc, size_t srtCnt, bool linear)
     {
-        if (set.get() != nullptr)
-            set.release();
-        set = std::make_unique<Set>(piol);
+        set.reset(new Set(piol));
         for (size_t j = 0; j < numNs; j++)
             for (size_t k = 0; k < numInc; k++)
                 for (size_t i = 0; i < numFile; i++)
@@ -132,10 +147,8 @@ struct SetTest : public Test
 
     void init(size_t numFile, size_t nt, size_t inactive)
     {
+        set.reset(new Set(piol));
         srand(1337);
-        if (set.get() != nullptr)
-            set.release();
-        set = std::make_unique<Set>(piol);
         for (size_t i = 0; i < numFile; i++)
         {
             auto mock = std::make_unique<MockFile>();
@@ -158,9 +171,7 @@ struct SetTest : public Test
 
     void taperTest(size_t nt, size_t ns, size_t mute, TaperFunc tapFunc, TaperType type, size_t nTailLft, size_t nTailRt)
     {
-        if (set.get() != nullptr)
-            set.release();
-        set = std::make_unique<Set>(piol);
+        set.reset(new Set(piol));
         auto mock = std::make_unique<MockFile>();
 
         std::vector<trace_t> trc(nt * ns);
@@ -200,9 +211,7 @@ struct SetTest : public Test
 
     void agcTest(size_t nt, size_t ns, AGCType type, std::function<trace_t(size_t, trace_t *,size_t)> agcFunc, size_t window, trace_t normR)
     {
-        if (set.get() != nullptr)
-            set.release();
-        set = std::make_unique<Set>(piol);
+        set.reset(new Set(piol));
         auto mock = std::make_unique<MockFile>();
 
         std::vector<trace_t> trc(nt*ns);

@@ -33,13 +33,13 @@ class ReadSEGY : public ReadInterface
         Opt(void);
     };
 
-    private :
+    protected :
     SEGY::Format format;        //!< Type formats
     unit_t incFactor;           //!< The increment factor
     /*! \brief This function initialises the SEGY specific portions of the class.
      *  \param[in] opt The SEGY-File options
      */
-    void Init(const ReadSEGY::Opt * opt);
+    void init(const ReadSEGY::Opt * opt);
 
     public :
     /*! \brief The SEGY-Object class constructor.
@@ -62,8 +62,6 @@ class ReadSEGY : public ReadInterface
      *  \param[in] name_   The name of the file associated with the instantiation.
      */
     ReadSEGY(const Piol piol_, const std::string name_);
-
-    size_t readNt(void);
 
     void readTrace(csize_t offset, csize_t sz, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 
@@ -126,7 +124,9 @@ class WriteSEGY : public WriteInterface
     /*! \brief This function initialises the SEGY specific portions of the class.
      *  \param[in] opt_ The SEGY-File options
      */
-    void Init(const WriteSEGY::Opt * opt_);
+    void init(const WriteSEGY::Opt * opt_);
+
+    void deinit(void);
 
     /*! Calculate the number of traces currently stored (or implied to exist).
      *  \return Return the number of traces

@@ -9,9 +9,7 @@
 #include "tglobal.hh"
 #include "anc/mpi.hh"
 #include "data/datampiio.hh"
-#include "object/objsegy.hh"
 #include "share/units.hh"
-#include "share/segy.hh"
 #include "share/datatype.hh"
 
 #define private public
@@ -19,6 +17,9 @@
 #include "cppfileapi.hh"
 #include "file/filesegy.hh"
 #include "file/fileseis.hh"
+#include "object/objsegy.hh"
+#include "object/objseis.hh"
+#include "share/segy.hh"
 #include "segymdextra.hh"
 #undef private
 #undef protected
@@ -55,8 +56,7 @@ class MockWriteObj : public Obj::WriteInterface
 {
     public :
     MockWriteObj(std::shared_ptr<ExSeisPIOL> piol_, const std::string name_, std::shared_ptr<Data::Interface> data_)
-               : Obj::WriteInterface(piol_, name_, data_) {
-    }
+               : Obj::WriteInterface(piol_, name_, data_) {}
 
     MOCK_CONST_METHOD1(setFileSz, void(csize_t));
     MOCK_CONST_METHOD1(writeHO, void(const std::shared_ptr<FileMetadata>));
@@ -70,96 +70,143 @@ class MockWriteObj : public Obj::WriteInterface
     MOCK_CONST_METHOD4(writeDOMD, void(csize_t *, csize_t, csize_t, const uchar *));
 };
 
-template <class T>
-struct FileReadTest : public Test
+template <class T, class R, bool isMock, bool isRead>
+struct FileTest : public Test
 {
+    std::string name;
     std::shared_ptr<ExSeisPIOL> piol;
     Comm::MPI::Opt opt;
     bool testEBCDIC;
     std::string testString = {"This is a string for testing EBCDIC conversion etc."};
     std::vector<uchar> tr;
+    std::vector<uchar> ho;
     size_t nt = 40U;
     size_t ns = 200U;
     int inc = 10;
     csize_t format = 5;
-    std::unique_ptr<T> rfile;
-    std::shared_ptr<MockReadObj> rmock;
 
-    FileReadTest()
+    typedef typename R::DObj RObj;
+    typedef typename T::DObj TObj;
+    typedef typename TObj::Data TData;
+    typedef typename RObj::Data RData;
+
+    typename TObj::Data::Opt d;
+    typename T::Opt wopt;
+    typename R::Opt ropt;
+
+    std::unique_ptr<T> wfile;
+    std::unique_ptr<R> rfile;
+    std::shared_ptr<MockReadObj> rmock;
+    std::shared_ptr<MockWriteObj> wmock;
+
+    std::shared_ptr<TData> dat;
+    std::shared_ptr<Obj::SEGYFileHeader> fo;
+
+    FileTest()
     {
         testEBCDIC = false;
         rfile = nullptr;
+        wfile = nullptr;
         opt.initMPI = false;
         piol = std::make_shared<ExSeisPIOL>(opt);
+        wfile = nullptr;
+        ho.resize(SEGSz::getHOSz());
     }
 
-    ~FileReadTest()
+    ~FileTest()
     {
         if (rmock.get())
             Mock::VerifyAndClearExpectations(&rmock);
+        if (wmock.get())
+            Mock::VerifyAndClearExpectations(&wmock);
     }
 
     template <bool OPTS = false>
     void openFile(std::string name)
     {
-        if (rfile.get())
-            rfile.reset();
-    #warning FILL
-/*
-        if (OPTS)
+        ASSERT_FALSE(isMock);
+        ASSERT_TRUE(isRead);
+/*        if (OPTS)
         {
-            T::Opt fopt;
-            Obj::ReadSEGY::Opt oopt;
             Data::MPIIO::Opt dopt;
-            file = std::make_unique<T>(piol, name, fopt, oopt, dopt);
+            auto dat = std::make_shared<T::
+            rfile = std::make_unique<T>(piol, name, ropt, ropt, dopt);
         }
         else*/
-        rfile = std::make_unique<T>(piol, name);
+            rfile.reset(new R(piol, name));
         assert(rfile->obj);
         piol->isErr();
     }
 
-    virtual void makeMock()
+    void createFile(std::string name_)
     {
-        if (rfile.get())
-            rfile.reset();
-        if (rmock.get())
-            rmock.reset();
-        rmock = std::make_shared<MockReadObj>(piol, notFile, nullptr);
-        piol->isErr();
-        Mock::AllowLeak(rmock.get());
+        ASSERT_FALSE(isMock);
+        ASSERT_FALSE(isRead);
 
-  /*      if (testEBCDIC)
+        name = name_;
+        if (wfile.get() != nullptr)
+            wfile.reset();
+        piol->isErr();
+
+        dat = std::make_shared<TData>(piol, name, d, FileMode::Test);
+
+        auto wobj = std::make_shared<TObj>(piol, name, &wopt, dat);
+        wfile = std::make_unique<T>(piol, name, &wopt, wobj);
+
+        auto robj = std::make_shared<RObj>(piol, name, &ropt, dat);
+        rfile = std::make_unique<R>(piol, name, &ropt, robj);
+
+        writeHO();
+        rfile->nt = nt;
+        rfile->ns = ns;
+        rfile->inc = inc;
+        rfile->text = testString;
+    }
+
+    template <bool callHO = true>
+    void makeMock()
+    {
+        ASSERT_TRUE(isMock);
+        if (isRead)
         {
-            // Create an EBCDID string to convert back to ASCII in the test
-            size_t tsz = testString.size();
-            size_t tsz2 = tsz;
-            char * t = &testString[0];
-            char * newText = reinterpret_cast<char *>(ho.data());
-            iconv_t toAsc = iconv_open("EBCDICUS//", "ASCII//");
-            ::iconv(toAsc, &t, &tsz, &newText, &tsz2);
-            iconv_close(toAsc);
+            rmock.reset(new MockReadObj(piol, notFile, nullptr));
+            piol->isErr();
+            Mock::AllowLeak(rmock.get());
+
+            //EXPECT_CALL(*rmock, getFileSz()).Times(Exactly(1)).WillOnce(Return(SEGSz::getHOSz() +
+            //                                                               nt*SEGSz::getDOSz(ns)));
+
+            auto desc = std::make_shared<FileMetadata>();
+            desc->nt = nt;
+            desc->ns = ns;
+            desc->inc = inc * geom_t(SI::Micro);
+            desc->text = testString;
+
+            EXPECT_CALL(*rmock, readHO()).Times(Exactly(1)).WillOnce(Return(desc));
+
+            rfile.reset(new R(piol, notFile, rmock));
         }
         else
-            for (size_t i = 0; i < testString.size(); i++)
-                ho[i] = testString[i];
-        if (testString.size())
-            for (size_t i = testString.size(); i < SEGSz::getTextSz(); i++)
-                ho[i] = ho[i % testString.size()];
+        {
+            wmock.reset( new MockWriteObj(piol, notFile, nullptr));
+            piol->isErr();
+            Mock::AllowLeak(wmock.get());
 
-        ho[NumSample] = ns >> 8 & 0xFF;
-        ho[NumSample+1] = ns & 0xFF;
-        ho[Increment] = inc >> 8 & 0xFF;
-        ho[Increment+1] = inc & 0xFF;
-        ho[Type+1] = format;
-*/
-        EXPECT_CALL(*rmock, getFileSz()).Times(Exactly(1)).WillOnce(Return(SEGSz::getHOSz() +
-                                                                       nt*SEGSz::getDOSz(ns)));
+            assert(wmock.get());
+            wfile.reset(new T(piol, notFile, wmock));
 
-#warning TODO!
-//        EXPECT_CALL(*rmock, readHO(_)).Times(Exactly(1)).WillOnce(SetArrayArgument<0>(ho.begin(), ho.end()));
-
-        rfile = std::make_unique<T>(piol, notFile, rmock);
+            assert(wfile->obj);
+            if (callHO)
+            {
+                piol->isErr();
+                writeHO();
+            }
+            else
+            {
+                wfile->nt = nt;
+                wfile->writeNs(ns);
+            }
+        }
     }
 
     void initTrBlock()
@@ -275,12 +322,12 @@ struct FileReadTest : public Test
         }
     }
 
-    template <bool readPrm = false, bool MOCK = true, bool RmRule = false>
+    template <bool readPrm = false, bool RmRule = false>
     void readTraceTest(csize_t offset, size_t tn)
     {
         size_t tnRead = (offset + tn > nt && nt > offset ? nt - offset : tn);
         std::vector<uchar> buf;
-        if (MOCK)
+        if (isMock)
         {
             if (rmock == nullptr)
             {
@@ -352,24 +399,12 @@ struct FileReadTest : public Test
         }
     }
 
-    void readTraceTest(bool readPrm, bool MOCK, csize_t offset, size_t tn)
-    {
-        if (readPrm && MOCK)
-            readTraceTest<true, true>(offset, tn);
-        else if (readPrm && !MOCK)
-            readTraceTest<true, false>(offset, tn);
-        else if (!readPrm && MOCK)
-            readTraceTest<false, true>(offset, tn);
-        else
-            readTraceTest<false, false>(offset, tn);
-    }
-
-    template <bool readPrm = false, bool MOCK = true>
+    template <bool readPrm = false>
     void readRandomTraceTest(size_t tn, const std::vector<size_t> offset)
     {
         ASSERT_EQ(tn, offset.size());
         std::vector<uchar> buf;
-        if (MOCK)
+        if (isMock)
         {
             if (rmock == nullptr)
             {
@@ -428,135 +463,45 @@ struct FileReadTest : public Test
         }
     }
 
-    void readRandomTraceTest(bool readPrm, bool MOCK, csize_t tn, const std::vector<size_t> offset)
-    {
-        if (readPrm && MOCK)
-            readRandomTraceTest<true, true>(tn, offset);
-        else if (readPrm && !MOCK)
-            readRandomTraceTest<true, false>(tn, offset);
-        else if (!readPrm && MOCK)
-            readRandomTraceTest<false, true>(tn, offset);
-        else
-            readRandomTraceTest<false, false>(tn, offset);
-    }
-};
-
-template <class T, class R>
-struct FileWriteTest : public FileReadTest<R>
-{
-    std::unique_ptr<T> wfile;
-    std::shared_ptr<MockWriteObj> wmock;
-    std::vector<uchar> ho;
-
-    FileWriteTest() : FileReadTest<R>()
-    {
-        wfile = nullptr;
-        ho.resize(SEGSz::getHOSz());
-    }
-
-    ~FileWriteTest()
-    {
-        wfile.reset();
-        if (wmock.get())
-            Mock::VerifyAndClearExpectations(&wmock);
-    }
-
-    void createFile(std::string name)
-    {
-        //name_ = name;
-        if (wfile.get() != nullptr)
-            wfile.reset();
-        this->piol->isErr();
-
-        typename T::DObj::Data::Opt d;
-        auto dat = std::make_shared<T::DObj::Data>(this->piol, name, d, FileMode::Test);
-
-        {
-            typename T::Opt f;
-            auto wobj = std::make_shared<T::DObj>(this->piol, name, &f, dat);
-            wfile = std::make_unique<T>(this->piol, name, &f, wobj);
-        }
-
-        {
-            typename R::Opt f;
-            auto robj = std::make_shared<R::DObj>(this->piol, name, &f, dat);
-            this->rfile = std::make_unique<R>(this->piol, name, &f, robj);
-        }
-
-        writeHO<false>();
-        this->rfile->nt = this->nt;
-        this->rfile->ns = this->ns;
-        this->rfile->inc = this->inc;
-        this->rfile->text = this->testString;
-    }
-
-    template <bool callHO = true>
-    void makeMock()
-    {
-        if (!wfile.get())
-            wfile.reset();
-        if (!wmock.get())
-            wmock.reset();
-        wmock = std::make_shared<MockWriteObj>(this->piol, notFile, nullptr);
-        this->piol->isErr();
-        Mock::AllowLeak(wmock.get());
-
-        assert(wmock.get());
-        wfile = std::make_unique<T>(this->piol, notFile, wmock);
-
-        assert(wfile->obj);
-        if (callHO)
-        {
-            this->piol->isErr();
-            writeHO<true>();
-        }
-        else
-        {
-            wfile->nt = this->nt;
-            wfile->writeNs(this->ns);
-        }
-    }
-
-    template <bool MOCK = true>
     void writeHO()
     {
-        if (MOCK)
+        if (isMock)
         {
-            size_t fsz = SEGSz::getHOSz() + this->nt*SEGSz::getDOSz(this->ns);
+            size_t fsz = SEGSz::getHOSz() + nt*SEGSz::getDOSz(ns);
             EXPECT_CALL(*wmock, setFileSz(fsz)).Times(Exactly(1));
-            for (size_t i = 0U; i < std::min(this->testString.size(), SEGSz::getTextSz()); i++)
-                ho[i] = this->testString[i];
+            for (size_t i = 0U; i < std::min(testString.size(), SEGSz::getTextSz()); i++)
+                ho[i] = testString[i];
 
-            ho[NumSample+1] = this->ns & 0xFF;
-            ho[NumSample] = this->ns >> 8 & 0xFF;
-            ho[Increment+1] = this->inc & 0xFF;
-            ho[Increment] = this->inc >> 8 & 0xFF;
-            ho[Type+1] = this->format;
+            ho[NumSample+1] = ns & 0xFF;
+            ho[NumSample] = ns >> 8 & 0xFF;
+            ho[Increment+1] = inc & 0xFF;
+            ho[Increment] = inc >> 8 & 0xFF;
+            ho[Type+1] = format;
             ho[3255U] = 1;
             ho[3500U] = 1;
             ho[3503U] = 1;
             ho[3505U] = 0;
 
-            auto fo = std::make_shared<Obj::SEGYFileHeader>();
-            fo->inc = this->inc;
+            fo = std::make_shared<Obj::SEGYFileHeader>();
             fo->incFactor = SI::Micro;
-            fo->ns = this->ns;
-            fo->nt = this->nt;
-            fo->text = this->testString;
-            EXPECT_CALL(*wmock, writeHO(checkstruct0(fo))).Times(Exactly(1));
+            fo->inc = inc * geom_t(fo->incFactor);
+            fo->ns = ns;
+            fo->nt = nt;
+            fo->text = testString;
+            EXPECT_CALL(*wmock, writeHO(_)).WillOnce(checkfilemetadata(fo, 5));
         }
 
-        wfile->writeNt(this->nt);
-        this->piol->isErr();
+        wfile->writeNt(nt);
+        piol->isErr();
 
-        wfile->writeNs(this->ns);
-        this->piol->isErr();
+        wfile->writeNs(ns);
+        piol->isErr();
 
-        wfile->writeInc(geom_t(this->inc*SI::Micro));
-        this->piol->isErr();
+        wfile->writeInc(geom_t(inc)*SI::Micro);
+        piol->isErr();
 
-        wfile->writeText(this->testString);
-        this->piol->isErr();
+        wfile->writeText(testString);
+        piol->isErr();
     }
 
     void writeTrHdrGridTest(size_t offset)
@@ -567,7 +512,7 @@ struct FileWriteTest : public FileReadTest<R>
         getBigEndian<int16_t>(1, &tr[ScaleCoord]);
         getBigEndian(int32_t(offset), &tr[SeqFNum]);
 
-        EXPECT_CALL(*wmock, writeDOMD(offset, this->ns, 1U, _)).Times(Exactly(1))
+        EXPECT_CALL(*wmock, writeDOMD(offset, ns, 1U, _)).Times(Exactly(1))
                                                         .WillOnce(check3(tr.data(), SEGSz::getMDSz()));
 
         File::Param prm(1U);
@@ -584,7 +529,7 @@ struct FileWriteTest : public FileReadTest<R>
         getBigEndian(val.first,         &tr->at(item.first));
         getBigEndian(val.second,        &tr->at(item.second));
         getBigEndian(int32_t(offset),   &tr->at(SeqFNum));
-        EXPECT_CALL(*wmock, writeDOMD(offset, this->ns, 1U, _)).Times(Exactly(1))
+        EXPECT_CALL(*wmock, writeDOMD(offset, ns, 1U, _)).Times(Exactly(1))
                                                         .WillOnce(check3(tr->data(), SEGSz::getMDSz()));
     }
 
@@ -607,12 +552,11 @@ struct FileWriteTest : public FileReadTest<R>
         getBigEndian(int32_t(filePos), &md[SeqFNum]);
     }
 
-    template <bool writePrm = false, bool MOCK = true>
+    template <bool writePrm = false>
     void writeTraceTest(csize_t offset, csize_t tn)
     {
-        csize_t ns = this->ns;
         std::vector<uchar> buf;
-        if (MOCK)
+        if (isMock)
         {
             EXPECT_CALL(*wmock, writeHO(_)).Times(Exactly(1));
             EXPECT_CALL(*wmock, setFileSz(_)).Times(Exactly(1));
@@ -670,21 +614,21 @@ struct FileWriteTest : public FileReadTest<R>
             wfile->writeTrace(offset, tn, bufnew.data());
         }
 
-        if (!MOCK)
+        if (!isMock)
         {
-            this->rfile->nt = std::max(offset+tn, this->rfile->nt);
-//            this->readTraceTest<writePrm, false>(offset, tn);
-            this->readTraceTest(writePrm, false, offset, tn);
+            wfile->deinit();
+            std::static_pointer_cast<RObj>(rfile->obj)->Init(&ropt);
+            rfile->init(&ropt);
+            readTraceTest<writePrm>(offset, tn);
         }
     }
 
-    template <bool writePrm = false, bool MOCK = true>
+    template <bool writePrm = false>
     void writeRandomTraceTest(size_t tn, const std::vector<size_t> offset)
     {
-        size_t ns = this->ns;
         ASSERT_EQ(tn, offset.size());
         std::vector<uchar> buf;
-        if (MOCK)
+        if (isMock)
         {
             EXPECT_CALL(*wmock, writeHO(_)).Times(Exactly(1));
             EXPECT_CALL(*wmock, setFileSz(_)).Times(Exactly(1));
@@ -740,20 +684,22 @@ struct FileWriteTest : public FileReadTest<R>
         else
             wfile->writeTrace(tn, offset.data(), bufnew.data());
 
-        if (!MOCK)
+        if (!isMock)
         {
-            for (size_t i = 0U; i < tn; i++)
-                this->rfile->nt = std::max(offset[i], this->rfile->nt);
-            this->readRandomTraceTest(writePrm, false, tn, offset);
+            wfile->deinit();
+            std::static_pointer_cast<RObj>(rfile->obj)->Init(&ropt);
+            rfile->init(&ropt);
+
+            readRandomTraceTest<writePrm>(tn, offset);
         }
     }
 
     template <bool Copy>
     void writeTraceHeaderTest(csize_t offset, csize_t tn)
     {
-        const bool MOCK = true;
+        const bool isMock = true;
         std::vector<uchar> buf;
-        if (MOCK)
+        if (isMock)
         {
             buf.resize(tn * SEGSz::getMDSz());
             for (size_t i = 0; i < tn; i++)
@@ -776,7 +722,7 @@ struct FileWriteTest : public FileReadTest<R>
                 setGrid(Grid::Line, line, md);
                 getBigEndian(int32_t(offset + i), &md[SeqFNum]);
             }
-            EXPECT_CALL(*wmock.get(), writeDOMD(offset, this->ns, tn, _))
+            EXPECT_CALL(*wmock.get(), writeDOMD(offset, ns, tn, _))
                         .Times(Exactly(1)).WillOnce(check3(buf.data(), buf.size()));
         }
 
@@ -808,13 +754,48 @@ struct FileWriteTest : public FileReadTest<R>
     }
 };
 
-typedef FileReadTest<File::ReadSEGY> FileSEGYRead;
-typedef FileReadTest<File::ReadSEGY> FileSEGYIntegRead;
-typedef FileWriteTest<File::WriteSEGY, File::ReadSEGY> FileSEGYWrite;
-typedef FileWriteTest<File::WriteSEGY, File::ReadSEGY> FileSEGYIntegWrite;
+/*
+template <class T, class R>
+struct FileWriteTest : public FileReadTest<R>
+{
+    typedef typename R::DObj RObj;
+    typedef typename T::DObj TObj;
+    typedef typename TObj::Data TData;
+    typedef typename RObj::Data RData;
 
-typedef FileReadTest<File::ReadSeis> FileSeisRead;
-typedef FileReadTest<File::ReadSeis> FileSeisIntegRead;
-typedef FileWriteTest<File::WriteSeis, File::ReadSeis> FileSeisWrite;
-typedef FileWriteTest<File::WriteSeis, File::ReadSeis> FileSeisIntegWrite;
+    typename TObj::Data::Opt d;
+    typename T::Opt wf;
+    typename R::Opt rf;
+
+    std::unique_ptr<T> wfile;
+    std::shared_ptr<MockWriteObj> wmock;
+    std::vector<uchar> ho;
+
+    std::shared_ptr<TData> dat;
+    std::string name;
+    std::shared_ptr<Obj::SEGYFileHeader> fo;
+
+    FileWriteTest() : FileReadTest<R>()
+    {
+        wfile = nullptr;
+        ho.resize(SEGSz::getHOSz());
+    }
+
+    ~FileWriteTest()
+    {
+        wfile.reset();
+        if (wmock.get())
+            Mock::VerifyAndClearExpectations(&wmock);
+    }
+};*/
+
+typedef FileTest<File::WriteSEGY, File::ReadSEGY, true, true> FileSEGYRead;
+typedef FileTest<File::WriteSEGY, File::ReadSEGY, false, true> FileSEGYIntegRead;
+typedef FileTest<File::WriteSEGY, File::ReadSEGY, true, false> FileSEGYWrite;
+typedef FileTest<File::WriteSEGY, File::ReadSEGY, false, false> FileSEGYIntegWrite;
+
+typedef FileTest<File::WriteSeis, File::ReadSeis, true, true> FileSeisRead;
+typedef FileTest<File::WriteSeis, File::ReadSeis, false, true> FileSeisIntegRead;
+typedef FileTest<File::WriteSeis, File::ReadSeis, true, false> FileSeisWrite;
+typedef FileTest<File::WriteSeis, File::ReadSeis, false, false> FileSeisIntegWrite;
 

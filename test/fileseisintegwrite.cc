@@ -55,7 +55,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceNormal)
     nt = 100;
     ns = 300;
     createFile(tempFile);
-    writeTraceTest<false, false>(0, nt);
+    writeTraceTest<false>(0, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmNormal)
@@ -63,7 +63,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmNormal)
     nt = 100;
     ns = 300;
     createFile(tempFile);
-    writeTraceTest<true, false>(0, nt);
+    writeTraceTest<true>(0, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceNormal)
@@ -73,7 +73,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceNormal)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<false, false>(size, offsets);
+    writeRandomTraceTest<false>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmNormal)
@@ -83,7 +83,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmNormal)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<true, false>(size, offsets);
+    writeRandomTraceTest<true>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceNormalOpt)
@@ -91,7 +91,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceNormalOpt)
     nt = 100;
     ns = 300;
     createFile(tempFile);
-    writeTraceTest<false, false>(0, nt);
+    writeTraceTest<false>(0, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmNormalOpt)
@@ -99,7 +99,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmNormalOpt)
     nt = 100;
     ns = 300;
     createFile(tempFile);
-    writeTraceTest<true, false>(0, nt);
+    writeTraceTest<true>(0, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceNormalOpt)
@@ -109,7 +109,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceNormalOpt)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<false, false>(size, offsets);
+    writeRandomTraceTest<false>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmNormalOpt)
@@ -119,7 +119,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmNormalOpt)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<true, false>(size, offsets);
+    writeRandomTraceTest<true>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceBigNs)
@@ -127,7 +127,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceBigNs)
     nt = 100;
     ns = 10000;
     createFile(tempFile);
-    writeTraceTest<false, false>(10, nt);
+    writeTraceTest<false>(10, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmBigNs)
@@ -135,7 +135,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmBigNs)
     nt = 100;
     ns = 10000;
     createFile(tempFile);
-    writeTraceTest<true, false>(10, nt);
+    writeTraceTest<true>(10, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceBigNs)
@@ -145,7 +145,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceBigNs)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<false, false>(size, offsets);
+    writeRandomTraceTest<false>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmBigNs)
@@ -155,7 +155,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmBigNs)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<true, false>(size, offsets);
+    writeRandomTraceTest<true>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceBigOffset)
@@ -163,7 +163,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceBigOffset)
     nt = 10;
     ns = 3000;
     createFile(tempFile);
-    writeTraceTest<false, false>(3728270, nt);
+    writeTraceTest<false>(3728270, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmBigOffset)
@@ -171,7 +171,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmBigOffset)
     nt = 10;
     ns = 3000;
     createFile(tempFile);
-    writeTraceTest<true, false>(3728270, nt);
+    writeTraceTest<true>(3728270, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FarmFileWriteTraceBigNt)
@@ -179,7 +179,7 @@ TEST_F(FileSeisIntegWrite, FarmFileWriteTraceBigNt)
     nt = 3728270;
     ns = 300;
     createFile(tempFile);
-    writeTraceTest<false, false>(0, nt);
+    writeTraceTest<false>(0, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FarmFileWriteTraceWPrmBigNt)
@@ -187,7 +187,7 @@ TEST_F(FileSeisIntegWrite, FarmFileWriteTraceWPrmBigNt)
     nt = 3728270;
     ns = 300;
     createFile(tempFile);
-    writeTraceTest<true, false>(0, nt);
+    writeTraceTest<true>(0, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FarmFileWriteRandomTraceBigNt)
@@ -197,7 +197,7 @@ TEST_F(FileSeisIntegWrite, FarmFileWriteRandomTraceBigNt)
     size_t size = nt/100;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<false, false>(size, offsets);
+    writeRandomTraceTest<false>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FarmFileWriteRandomTraceWPrmBigNt)
@@ -207,7 +207,7 @@ TEST_F(FileSeisIntegWrite, FarmFileWriteRandomTraceWPrmBigNt)
     size_t size = nt/100;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<true, false>(size, offsets);
+    writeRandomTraceTest<true>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceZeroNt)
@@ -215,7 +215,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceZeroNt)
     nt = 0;
     ns = 10;
     createFile(tempFile);
-    writeTraceTest<false, false>(10, nt);
+    writeTraceTest<false>(10, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmZeroNt)
@@ -223,7 +223,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmZeroNt)
     nt = 0;
     ns = 10;
     createFile(tempFile);
-    writeTraceTest<true, false>(10, nt);
+    writeTraceTest<true>(10, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceZeroNt)
@@ -233,7 +233,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceZeroNt)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<false, false>(size, offsets);
+    writeRandomTraceTest<false>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmZeroNt)
@@ -243,7 +243,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmZeroNt)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<true, false>(size, offsets);
+    writeRandomTraceTest<true>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceZeroNs)
@@ -251,7 +251,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceZeroNs)
     nt = 10;
     ns = 0;
     createFile(tempFile);
-    writeTraceTest<false, false>(10, nt);
+    writeTraceTest<false>(10, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmZeroNs)
@@ -259,7 +259,7 @@ TEST_F(FileSeisIntegWrite, FileWriteTraceWPrmZeroNs)
     nt = 10;
     ns = 0;
     createFile(tempFile);
-    writeTraceTest<true, false>(10, nt);
+    writeTraceTest<true>(10, nt);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceZeroNs)
@@ -269,7 +269,7 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceZeroNs)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<false, false>(size, offsets);
+    writeRandomTraceTest<false>(size, offsets);
 }
 
 TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmZeroNs)
@@ -279,5 +279,5 @@ TEST_F(FileSeisIntegWrite, FileWriteRandomTraceWPrmZeroNs)
     size_t size = nt;
     auto offsets = getRandomVec(size, nt, 1337);
     createFile(tempFile);
-    writeRandomTraceTest<true, false>(size, offsets);
+    writeRandomTraceTest<true>(size, offsets);
 }

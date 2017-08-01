@@ -58,8 +58,7 @@ class ReadSEGY : public ReadInterface
      */
     ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_);
 
-    ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Read))
-    { }
+    ReadSEGY(const Piol piol_, const std::string name_);
 
     size_t getFileSz(void) const;
 
@@ -144,7 +143,7 @@ struct SEGYFileHeader : public FileMetadata
     SEGYFileHeader(void) {}
     bool operator==(SEGYFileHeader & other)
     {
-        return format == other.format && other.incFactor && FileMetadata::operator==(other);
+        return format == other.format && incFactor == other.incFactor && FileMetadata::operator==(other);
     }
 };
 }}

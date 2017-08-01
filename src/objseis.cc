@@ -25,7 +25,7 @@ std::vector<std::shared_ptr<Data::Interface>> makeMultiData(Piol piol, std::vect
     return data;
 }
 
-void ReadSeis::Init(void)
+void ReadSeis::Init(const Opt * opt)
 {
 //TODO: This function will need to detect the file structure based on the header
     std::vector<uchar> dat(data->getFileSz());
@@ -36,14 +36,15 @@ void ReadSeis::Init(void)
     traceBlocks = makeMultiData(piol, desc->extents, FileMode::Read);
 }
 
-ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const ReadSeis::Opt * opt_, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
+ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
 {
-    Init();
+    Init(opt);
 }
 
 ReadSeis::ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
 {
-    Init();
+    Opt opt;
+    Init(&opt);
 }
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////

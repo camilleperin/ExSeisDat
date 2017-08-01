@@ -72,31 +72,40 @@ class ObjTest : public Test
     }
 
     template <bool Check = true>
-    void makeReadRealSEGY(std::string name, std::string text = "", size_t nt_ = 0, size_t ns_ = 0, int inc_ = 0, int format_ = 0)
+    void makeReadRealSEGY(std::string name, size_t nt_ = 0, size_t ns_ = 0, int inc_ = 0, int format_ = 0)
     {
         auto data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Read);
         piol->isErr();
         obj.reset(new Obj::ReadSEGY(piol, name, data));
         piol->isErr();
-        auto desc = obj->readHO();
-        ns = desc->ns;
-        nt = desc->nt;
-        geom_t ginc = desc->inc;
-        testString = desc->text;
+        ns = ns_;
+        nt = nt_;
+        inc = inc_;
+        format = format_;
         if (Check)
-        {
-            EXPECT_EQ(ns, ns_);
-            EXPECT_EQ(nt, nt_);
-            EXPECT_DOUBLE_EQ(ginc, inc_ * geom_t(1e-6));
-            EXPECT_EQ(testString, text);
-        }
+            readHOPatternTest();
     }
+
+    void readHOPatternTest(std::string text = "")
+    {
+        auto desc = obj->readHO();
+        EXPECT_EQ(desc->ns, ns);
+        EXPECT_EQ(desc->nt, nt);
+        EXPECT_DOUBLE_EQ(desc->inc, geom_t(inc) * 1e-6);
+
+        char len = strlen(desc->text.c_str());
+
+        for (size_t i = 0; i < len; i++)
+            EXPECT_EQ(text[i], desc->text[i]);
+
+    }
+
 
     virtual void makeSEGY(size_t nt_, size_t ns_, int inc_ = 10, int format_ = 5)
     {
         nt = nt_;
         ns = ns_;
-        inc = geom_t(inc_) * 1e-6;
+        inc = inc_;
         format = format_;
 
         mock = std::make_shared<MockData>(piol, notFile);
@@ -122,10 +131,10 @@ class ObjTest : public Test
             for (size_t i = testString.size(); i < SEGSz::getTextSz(); i++)
                 ho[i] = ho[i % testString.size()];
 
-        ho[NumSample] = ns >> 8 & 0xFF;
         ho[NumSample+1] = ns & 0xFF;
-        ho[Increment] = inc_ >> 8 & 0xFF;
+        ho[NumSample] = ns >> 8 & 0xFF;
         ho[Increment+1] = inc_ & 0xFF;
+        ho[Increment] = inc_ >> 8 & 0xFF;
         ho[Type+1] = format;
 
         EXPECT_CALL(*mock, getFileSz()).Times(Exactly(1)).WillOnce(Return(SEGSz::getHOSz() +
@@ -138,8 +147,9 @@ class ObjTest : public Test
         auto desc = obj->readHO();
         EXPECT_EQ(ns, desc->ns);
         EXPECT_EQ(nt, desc->nt);
-        EXPECT_DOUBLE_EQ(inc, desc->inc);
-        EXPECT_EQ(testString, desc->text);
+        EXPECT_DOUBLE_EQ(geom_t(inc) * SI::Micro, desc->inc);
+        for (size_t i = 0; i < SEGSz::getTextSz(); i++)
+            EXPECT_EQ(testString[i % testString.size()], desc->text[i]);
     }
 
     ~ObjTest()
@@ -154,7 +164,7 @@ class ObjTest : public Test
     }
 
     template <Block Type, bool MOCK = true>
-    void readTest(csize_t offset, csize_t tn, csize_t poff = 0, uchar magic = 0)
+    void readTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         SCOPED_TRACE("readTest " + std::to_string(size_t(Type)));
         if (MOCK && mock == nullptr)
@@ -165,24 +175,24 @@ class ObjTest : public Test
         const size_t extra = 20U;
         size_t bsz = (Type == Block::DOMD ? SEGSz::getMDSz() : (Type == Block::DODF ? SEGSz::getDFSz(ns) : SEGSz::getDOSz(ns)));
         auto locFunc = (Type != Block::DODF ? SEGSz::getDOLoc<float> : SEGSz::getDODFLoc<float>);
-        size_t step = tn * bsz;
+        size_t step = sz * bsz;
         std::vector<uchar> trnew(step + 2U*extra);
 
         std::vector<uchar> tr;
         if (MOCK)
         {
             tr.resize(step);
-            for (size_t i = 0U; i < tn; i++)
+            for (size_t i = 0U; i < sz; i++)
                 for (size_t j = 0U; j < bsz; j++)
                 {
                     size_t pos = poff + locFunc(offset + i, ns) + j;
                     tr[i*bsz+j] = getPattern(pos % 0x100);
                 }
             if (Type == Block::DO)
-                EXPECT_CALL(*mock, read(locFunc(offset, ns), tn*bsz, _))
+                EXPECT_CALL(*mock, read(locFunc(offset, ns), sz*bsz, _))
                         .WillOnce(SetArrayArgument<2>(tr.begin(), tr.end()));
             else
-                EXPECT_CALL(*mock, read(locFunc(offset, ns), bsz, SEGSz::getDOSz(ns), tn, _))
+                EXPECT_CALL(*mock, read(locFunc(offset, ns), bsz, SEGSz::getDOSz(ns), sz, _))
                         .WillOnce(SetArrayArgument<4>(tr.begin(), tr.end()));
         }
 
@@ -192,20 +202,20 @@ class ObjTest : public Test
         switch (Type)
         {
             case Block::DODF :
-                obj->readDODF(offset, ns, tn, &trnew[extra]);
+                obj->readDODF(offset, ns, sz, &trnew[extra]);
             break;
             case Block::DOMD :
-                obj->readDOMD(offset, ns, tn, &trnew[extra]);
+                obj->readDOMD(offset, ns, sz, &trnew[extra]);
             break;
             default :
             case Block::DO :
-                obj->readDO(offset, ns, tn, &trnew[extra]);
+                obj->readDO(offset, ns, sz, &trnew[extra]);
             break;
         }
         piol->isErr();
 
         size_t tcnt = 0;
-        for (size_t i = 0U; i < tn; i++)
+        for (size_t i = 0U; i < sz; i++)
             for (size_t j = 0U; j < bsz; j++, tcnt++)
             {
                 size_t pos = poff + locFunc(offset + i, ns) + j;
@@ -223,7 +233,7 @@ class ObjTest : public Test
     void readRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
     {
         SCOPED_TRACE("readRandomTest " + std::to_string(size_t(Type)));
-        size_t tn = offset.size();
+        size_t sz = offset.size();
         if (MOCK && mock == nullptr)
         {
             std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
@@ -233,14 +243,14 @@ class ObjTest : public Test
         size_t bsz = (Type == Block::DOMD ? SEGSz::getMDSz() : (Type == Block::DODF ? SEGSz::getDFSz(ns) : SEGSz::getDOSz(ns)));
         auto locFunc = (Type != Block::DODF ? SEGSz::getDOLoc<float> : SEGSz::getDODFLoc<float>);
 
-        size_t step = tn * bsz;
+        size_t step = sz * bsz;
         std::vector<uchar> trnew(step + 2U*extra);
         std::vector<uchar> tr;
 
         if (MOCK)
         {
             tr.resize(step);
-            for (size_t i = 0U; i < tn; i++)
+            for (size_t i = 0U; i < sz; i++)
                 for (size_t j = 0U; j < bsz; j++)
                 {
                     size_t pos = locFunc(offset[i], ns) + j;
@@ -248,7 +258,7 @@ class ObjTest : public Test
                 }
 
             if (Type != Block::DODF || bsz > 0)
-                EXPECT_CALL(*mock, read(bsz, tn, _, _))
+                EXPECT_CALL(*mock, read(bsz, sz, _, _))
                                .WillOnce(SetArrayArgument<3>(tr.begin(), tr.end()))
                                .RetiresOnSaturation();
 
@@ -260,19 +270,19 @@ class ObjTest : public Test
         switch (Type)
         {
             case Block::DODF :
-                obj->readDODF(offset.data(), ns, tn, &trnew[extra]);
+                obj->readDODF(offset.data(), ns, sz, &trnew[extra]);
             break;
             case Block::DOMD :
-                obj->readDOMD(offset.data(), ns, tn, &trnew[extra]);
+                obj->readDOMD(offset.data(), ns, sz, &trnew[extra]);
             break;
             default :
             case Block::DO :
-                obj->readDO(offset.data(), ns, tn, &trnew[extra]);
+                obj->readDO(offset.data(), ns, sz, &trnew[extra]);
             break;
         }
 
         size_t tcnt = 0;
-        for (size_t i = 0U; i < tn; i++)
+        for (size_t i = 0U; i < sz; i++)
             for (size_t j = 0U; j < bsz; j++, tcnt++)
             {
                 size_t pos = locFunc(offset[i], ns) + j;
@@ -295,90 +305,92 @@ class WriteObjTest : public ReadObjTest
     Piol piol;
     Comm::MPI::Opt opt;
     std::shared_ptr<MockData> mock;
-    Obj::WriteInterface * wobj;
-
+    std::shared_ptr<Obj::WriteInterface> wobj;
+    std::shared_ptr<Data::MPIIO> data;
     WriteObjTest()
     {
         mock = nullptr;
-        wobj = nullptr;
         opt.initMPI = false;
         piol = std::make_shared<ExSeisPIOL>(opt);
     }
 
-    void makeRealSEGY(std::string name)
+    void makeRealSEGY(std::string name, size_t ns_ = 200, int inc_ = 10, int format_ = 5)
     {
-        if (wobj != nullptr)
-            delete wobj;
+        data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Test);
+        piol->isErr();
+        wobj.reset(new Obj::WriteSEGY(piol, name, data));
+        piol->isErr();
+        obj.reset(new Obj::ReadSEGY(piol, name, data));
+        piol->isErr();
 
-        auto data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Test);
-        piol->isErr();
-        wobj = new Obj::WriteSEGY(piol, name, data);
-        piol->isErr();
-        makeReadRealSEGY(name);
+        nt = 0;
+        ns = ns_;
+        inc = inc_;
+        format = format_;
     }
 
     void makeSEGY(size_t nt_, size_t ns_, int inc_ = 10, int format_ = 5)
     {
-        if (wobj != nullptr)
-            delete wobj;
-
+        nt = nt_;
+        ns = ns_;
+        inc = inc_;
+        format = format_;
         mock = std::make_shared<MockData>(piol, notFile);
         piol->isErr();
-        wobj = new Obj::WriteSEGY(piol, notFile, mock);
+        wobj.reset(new Obj::WriteSEGY(piol, notFile, mock));
         piol->isErr();
     }
 
     ~WriteObjTest()
     {
-        if (wobj != nullptr)
-            delete wobj;
     }
 
     template <bool MOCK = true>
-    void writeHOPattern(size_t off, uchar magic)
+    void writeHOPattern(void)
     {
-        if (MOCK && mock == nullptr)
-        {
-            std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
-            return;
-        }
-
         if (MOCK)
         {
-            size_t fsz = SEGSz::getHOSz() + this->nt*SEGSz::getDOSz(this->ns);
-            EXPECT_CALL(*mock, setFileSz(fsz)).Times(Exactly(1));
-            for (size_t i = 0U; i < std::min(this->testString.size(), SEGSz::getTextSz()); i++)
-                ho[i] = this->testString[i];
+            if (!mock)
+            {
+                std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
+                return;
+            }
 
-            ho[NumSample+1] = this->ns & 0xFF;
-            ho[NumSample] = this->ns >> 8 & 0xFF;
-            ho[Increment+1] = this->inc & 0xFF;
-            ho[Increment] = this->inc >> 8 & 0xFF;
-            ho[Type+1] = this->format;
+            for (size_t i = 0U; i < std::min(testString.size(), SEGSz::getTextSz()); i++)
+                ho[i] = testString[i];
+
+            ho[NumSample+1] = ns & 0xFF;
+            ho[NumSample] = ns >> 8 & 0xFF;
+            ho[Increment+1] = inc & 0xFF;
+            ho[Increment] = inc >> 8 & 0xFF;
+            ho[Type+1] = format;
             ho[3255U] = 1;
             ho[3500U] = 1;
             ho[3503U] = 1;
             ho[3505U] = 0;
-
             EXPECT_CALL(*mock, write(0LU, SEGSz::getHOSz(), _)).Times(Exactly(1)).WillOnce(check2(ho.data(), SEGSz::getHOSz()));
         }
 
 #warning Needs to be generalised for Seis
         auto fo = std::make_shared<Obj::SEGYFileHeader>();
-        fo->inc = this->inc;
         fo->incFactor = SI::Micro;
-        fo->ns = this->ns;
-        fo->nt = this->nt;
-        fo->text = this->testString;
+        fo->inc = geom_t(inc) * SI::Micro;
+        fo->ns = ns;
+        fo->nt = nt;
+        fo->text = testString;
         wobj->writeHO(fo);
 
-#warning FIX
-//        if (!MOCK)
-//            readHOPatternTest<MOCK>(off, magic);
+        if (!MOCK)
+        {
+            obj.reset(new Obj::ReadSEGY(piol, "", data));
+            piol->isErr();
+
+            readHOPatternTest(testString);
+        }
     }
 
     template <Block Type, bool MOCK = true>
-    void writeTest(csize_t offset, csize_t tn, csize_t ns, csize_t poff = 0, uchar magic = 0)
+    void writeTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         SCOPED_TRACE("writeTest " + std::to_string(size_t(Type)));
 
@@ -386,27 +398,27 @@ class WriteObjTest : public ReadObjTest
         size_t bsz = (Type == Block::DOMD ? SEGSz::getMDSz() : (Type == Block::DODF ? SEGSz::getDFSz(ns) : SEGSz::getDOSz(ns)));
         auto locFunc = (Type != Block::DODF ? SEGSz::getDOLoc<float> : SEGSz::getDODFLoc<float>);
 
-        size_t step = tn * bsz;
+        size_t step = sz * bsz;
         std::vector<uchar> tr;
         std::vector<uchar> trnew(step + 2U*extra);
 
         if (MOCK)
         {
             tr.resize(step);
-            for (size_t i = 0U; i < tn; i++)
+            for (size_t i = 0U; i < sz; i++)
                 for (size_t j = 0U; j < bsz; j++)
                 {
                     size_t pos = poff + locFunc(offset + i, ns) + j;
                     tr[i*bsz+j] = getPattern(pos % 0x100);
                 }
             if (Type == Block::DO)
-                EXPECT_CALL(*mock, write(locFunc(offset, ns), tn*bsz, _))
+                EXPECT_CALL(*mock, write(locFunc(offset, ns), sz*bsz, _))
                         .WillOnce(check2(tr, tr.size()));
             else
-                EXPECT_CALL(*mock, write(locFunc(offset, ns), bsz, SEGSz::getDOSz(ns), tn, _))
+                EXPECT_CALL(*mock, write(locFunc(offset, ns), bsz, SEGSz::getDOSz(ns), sz, _))
                         .WillOnce(check4(tr, tr.size()));
         }
-        for (size_t i = 0U; i < tn; i++)
+        for (size_t i = 0U; i < sz; i++)
             for (size_t j = 0U; j < bsz; j++)
             {
                 size_t pos = poff + locFunc(offset + i, ns) + j;
@@ -419,52 +431,55 @@ class WriteObjTest : public ReadObjTest
         switch (Type)
         {
             case Block::DODF :
-                wobj->writeDODF(offset, ns, tn, &trnew[extra]);
+                wobj->writeDODF(offset, ns, sz, &trnew[extra]);
             break;
             case Block::DOMD :
-                wobj->writeDOMD(offset, ns, tn, &trnew[extra]);
+                wobj->writeDOMD(offset, ns, sz, &trnew[extra]);
             break;
             default :
             case Block::DO :
-                wobj->writeDO(offset, ns, tn, &trnew[extra]);
+                wobj->writeDO(offset, ns, sz, &trnew[extra]);
             break;
         }
 
         if (!MOCK)
         {
-            this->ns = ns;
-            readTest<Type, MOCK>(offset, tn, poff, magic);
+            nt = offset + sz;
+            obj.reset(new Obj::ReadSEGY(piol, "", data));
+            piol->isErr();
+
+            readTest<Type, MOCK>(offset, sz, poff, magic);
         }
     }
 
     template <Block Type, bool MOCK = true>
-    void writeRandomTest(csize_t ns, const std::vector<size_t> & offset, uchar magic = 0)
+    void writeRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
     {
         SCOPED_TRACE("writeRandomTest " + std::to_string(size_t(Type)));
-        size_t tn = offset.size();
+        size_t sz = offset.size();
         const size_t extra = 20U;
         size_t bsz = (Type == Block::DOMD ? SEGSz::getMDSz() : (Type == Block::DODF ? SEGSz::getDFSz(ns) : SEGSz::getDOSz(ns)));
         auto locFunc = (Type != Block::DODF ? SEGSz::getDOLoc<float> : SEGSz::getDODFLoc<float>);
-        size_t step = tn * bsz;
+        size_t step = sz * bsz;
         std::vector<uchar> tr;
         std::vector<uchar> trnew(step + 2U*extra);
 
         if (MOCK)
         {
             tr.resize(step);
-            for (size_t i = 0U; i < tn; i++)
+            for (size_t i = 0U; i < sz; i++)
                 for (size_t j = 0U; j < bsz; j++)
                 {
                     size_t pos = locFunc(offset[i], ns) + j;
                     tr[i*bsz+j] = getPattern(pos % 0x100);
                 }
             if (Type != Block::DODF || bsz > 0)
-                EXPECT_CALL(*mock, write(bsz, tn, _, _))
+                EXPECT_CALL(*mock, write(bsz, sz, _, _))
                                .WillOnce(check3(tr.data(), step))
                                .RetiresOnSaturation();
         }
 
-        for (size_t i = 0U; i < tn; i++)
+        for (size_t i = 0U; i < sz; i++)
             for (size_t j = 0U; j < bsz; j++)
             {
                 size_t pos = locFunc(offset[i], ns) + j;
@@ -476,19 +491,22 @@ class WriteObjTest : public ReadObjTest
         switch (Type)
         {
             case Block::DODF :
-                wobj->writeDODF(offset.data(), ns, tn, &trnew[extra]);
+                wobj->writeDODF(offset.data(), ns, sz, &trnew[extra]);
             break;
             case Block::DOMD :
-                wobj->writeDOMD(offset.data(), ns, tn, &trnew[extra]);
+                wobj->writeDOMD(offset.data(), ns, sz, &trnew[extra]);
             break;
             default :
             case Block::DO :
-                wobj->writeDO(offset.data(), ns, tn, &trnew[extra]);
+                wobj->writeDO(offset.data(), ns, sz, &trnew[extra]);
             break;
         }
         if (!MOCK)
         {
-            this->ns = ns;
+            nt = (offset.size() ? *std::max_element(offset.begin(), offset.end()) + 1LU : 0LU);
+            obj.reset(new Obj::ReadSEGY(piol, "", data));
+            piol->isErr();
+
             readRandomTest<Type, MOCK>(offset, magic);
         }
     }

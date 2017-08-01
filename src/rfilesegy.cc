@@ -6,40 +6,48 @@
  *   \brief
  *   \details ReadSEGY functions
  *//*******************************************************************************************/
+#include <assert.h>
 #include "global.hh"
 #include "file/filesegy.hh"
 #include "object/object.hh"
 namespace PIOL { namespace File {
 ///////////////////////////////      Constructor & Destructor      ///////////////////////////////
 ReadSEGY::Opt::Opt(void)
-{
-}
+{}
 
 ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::ReadInterface> obj_)
     : ReadInterface(piol_, name_, obj_)
 {
-    Init(opt);
+    init(opt);
 }
 
 ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_)
     : ReadInterface(piol_, name_, obj_)
 {
     ReadSEGY::Opt opt;
-    Init(&opt);
+    init(&opt);
 }
 
 ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadSEGY(piol_, name_, std::make_shared<DObj>(piol_, name_))
 {
+    ReadSEGY::Opt opt;
+    init(&opt);
 }
 
-
 ///////////////////////////////////       Member functions      ///////////////////////////////////
-void ReadSEGY::Init(const ReadSEGY::Opt * opt)
+void ReadSEGY::init(const ReadSEGY::Opt * opt)
 {
+    assert(obj);
     auto desc = obj->readHO();
     if (!desc)
+    {
         piol->log->record(name, Log::Layer::File, Log::Status::Error,
                          "Object layer returns null structure for metadata", Log::Verb::None);
+        inc = geom_t(0);
+        ns = 0LU;
+        nt = 0LU;
+        text = "";
+    }
     else
     {
         inc = desc->inc;
@@ -47,11 +55,6 @@ void ReadSEGY::Init(const ReadSEGY::Opt * opt)
         nt = desc->nt;
         text = desc->text;
     }
-}
-
-size_t ReadSEGY::readNt(void)
-{
-    return nt;
 }
 
 /*! Template function for reading SEG-Y traces and parameters, random and contiguous.
@@ -107,10 +110,11 @@ void readTraceT(Obj::ReadInterface * obj, const SEGY::Format format, csize_t ns,
 
 void ReadSEGY::readTrace(csize_t offset, csize_t sz, trace_t * trc, Param * prm, csize_t skip) const
 {
-    size_t ntz = (!sz ? sz : (offset + sz > nt ? nt - offset : sz));
+    size_t ntz = (!sz ? sz : (offset + sz > nt ? (offset <= nt ? nt - offset : 0LU) : sz));
     if (offset >= nt && sz)   //Nothing to be read.
         piol->log->record(name, Log::Layer::File, Log::Status::Warning,
                           "readParam() was called for a zero byte read", Log::Verb::None);
+
     readTraceT(obj.get(), format, ns, offset, [offset] (size_t i) -> size_t { return offset + i; }, ntz, trc, prm, skip);
 }
 

@@ -24,17 +24,17 @@ WriteSEGY::Opt::Opt(void)
 WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
-    Init(opt);
+    init(opt);
 }
 
 WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
     WriteSEGY::Opt opt;
-    Init(&opt);
+    init(&opt);
 }
 
-WriteSEGY::~WriteSEGY(void)
+void WriteSEGY::deinit(void)
 {
     if (!piol->log->isErr())    //TODO: On error this can be a source of a deadlock
     {
@@ -60,6 +60,11 @@ WriteSEGY::~WriteSEGY(void)
     }
 }
 
+WriteSEGY::~WriteSEGY(void)
+{
+    deinit();
+}
+
 ///////////////////////////////////       Member functions      ///////////////////////////////////
 /*void WriteSEGY::packHeader(uchar * buf) const
 {
@@ -77,7 +82,7 @@ WriteSEGY::~WriteSEGY(void)
     SEGY::setMd(SEGY::Hdr::Extensions, 0x0000, buf);    //We do not support text extensions at present.
 }*/
 
-void WriteSEGY::Init(const WriteSEGY::Opt * opt)
+void WriteSEGY::init(const WriteSEGY::Opt * opt)
 {
     incFactor = opt->incFactor;
     memset(&state, 0, sizeof(Flags));

@@ -19,16 +19,14 @@ TEST_F(FileSEGYRead, FileReadHO)
     EXPECT_EQ(ns, rfile->readNs());
     piol->isErr();
 
-    EXPECT_EQ(geom_t(inc*SI::Micro), rfile->readInc());
+    EXPECT_EQ(geom_t(inc)*SI::Micro, rfile->readInc());
     piol->isErr();
 
     std::string text = rfile->readText();
-    EXPECT_EQ(SEGSz::getTextSz(), text.size());
+    ASSERT_TRUE(text.size() < SEGSz::getTextSz());
+    EXPECT_EQ(text, testString);
 
 //EBCDIC conversion check
-    size_t slen = testString.size();
-    for (size_t i = 0; i < text.size(); i++)
-        ASSERT_EQ(testString[i % slen], text[i]) << "Loop number " << i << std::endl;
 }
 
 TEST_F(FileSEGYRead, FileReadHOAPI)
@@ -37,11 +35,8 @@ TEST_F(FileSEGYRead, FileReadHOAPI)
     makeMock();
 
     std::string text = rfile->readText();
-    EXPECT_EQ(3200U, text.size());
-    EXPECT_EQ(SEGSz::getTextSz(), text.size());
-    size_t slen = testString.size();
-    for (size_t i = 0; i < text.size(); i++)
-        ASSERT_EQ(testString[i % slen], text[i]) << "Loop number " << i << std::endl;
+    ASSERT_TRUE(text.size() < SEGSz::getTextSz());
+    EXPECT_EQ(text, testString);
 }
 
 ///////////////TRACE COORDINATES + GRIDS///////////////////////////////
@@ -261,7 +256,7 @@ TEST_F(FileSEGYRead, FileReadTraceBigNSRuleRm)
     nt = 100;
     ns = 10000;
     makeMock();
-    readTraceTest<false, true, true>(10, nt);
+    readTraceTest<false, true>(10, nt);
 }
 
 TEST_F(FileSEGYRead, FileReadTraceBigNSWPrmRuleRm)
@@ -270,7 +265,7 @@ TEST_F(FileSEGYRead, FileReadTraceBigNSWPrmRuleRm)
     ns = 10000;
     makeMock();
     initTrBlock();
-    readTraceTest<true, true, true>(10, nt);
+    readTraceTest<true, true>(10, nt);
 }
 
 TEST_F(FileSEGYRead, FileReadTraceBigOffsetRuleRm)
@@ -278,7 +273,7 @@ TEST_F(FileSEGYRead, FileReadTraceBigOffsetRuleRm)
     nt = 3738270;
     ns = 3000;
     makeMock();
-    readTraceTest<false, true, true>(3728270, 3000);
+    readTraceTest<false, true>(3728270, 3000);
 }
 
 TEST_F(FileSEGYRead, FileReadTraceWPrmBigOffsetRuleRm)
@@ -287,5 +282,5 @@ TEST_F(FileSEGYRead, FileReadTraceWPrmBigOffsetRuleRm)
     ns = 3000;
     makeMock();
     initTrBlock();
-    readTraceTest<true, true, true>(3728270, 3000);
+    readTraceTest<true, true>(3728270, 3000);
 }
