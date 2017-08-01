@@ -27,7 +27,6 @@
 #include "ops/agc.hh"
 #include "ops/taper.hh"
 #include "share/uniray.hh"
-
 namespace PIOL {
 
 /*! For CoordElem. Update the dst element based on if the operation gives true.

@@ -81,16 +81,25 @@ class ReadInterface : public Interface
 
     /*! \brief Read the number of samples per trace
      *  \return The number of samples per trace
+     *
+     *  Note that this function is virtual so that the
+     *  test framework can intercept the call
      */
-    size_t readNs(void) const;
+    virtual size_t readNs(void) const;
 
     /*! \brief Read the number of traces in the file
      *  \return The number of traces
+     *
+     *  Note that this function is virtual so that the
+     *  test framework can intercept the call
      */
-    size_t readNt(void) const;
+    virtual size_t readNt(void) const;
 
     /*! \brief Read the number of increment between trace samples
      *  \return The increment between trace samples
+     *
+     *  Note that this function is virtual so that the
+     *  test framework can intercept the call
      */
     virtual geom_t readInc(void) const;
 

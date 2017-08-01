@@ -73,7 +73,6 @@ size_t ReadSeis::getFileSz(void) const
 
 void WriteSeis::setFileSz(csize_t sz) const
 {
-    assert(0);
 }
 
 std::shared_ptr<FileMetadata> ReadSeis::readHO(void) const
@@ -83,66 +82,53 @@ std::shared_ptr<FileMetadata> ReadSeis::readHO(void) const
 
 void WriteSeis::writeHO(const std::shared_ptr<FileMetadata> ho) const
 {
-    assert(0);
 }
 
 void ReadSeis::readDO(csize_t offset, csize_t ns, csize_t sz, uchar * d) const
 {
-    assert(0);
 }
 
 void WriteSeis::writeDO(csize_t offset, csize_t ns, csize_t sz, const uchar * d) const
 {
-    assert(0);
 }
 
 void ReadSeis::readDOMD(csize_t offset, csize_t ns, csize_t sz, uchar * md) const
 {
-    assert(0);
 }
 
 void WriteSeis::writeDOMD(csize_t offset, csize_t ns, csize_t sz, const uchar * md) const
 {
-    assert(0);
 }
 
 void ReadSeis::readDODF(csize_t offset, csize_t ns, csize_t sz, uchar * df) const
 {
-    assert(0);
 }
 
 void WriteSeis::writeDODF(csize_t offset, csize_t ns, csize_t sz, const uchar * df) const
 {
-    assert(0);
 }
 
 void ReadSeis::readDO(csize_t * offset, csize_t ns, csize_t sz, uchar * d) const
 {
-    assert(0);
 }
 
 void WriteSeis::writeDO(csize_t * offset, csize_t ns, csize_t sz, const uchar * d) const
 {
-    assert(0);
 }
 
 void ReadSeis::readDOMD(csize_t * offset, csize_t ns, csize_t sz, uchar * md) const
 {
-    assert(0);
 }
 
 void WriteSeis::writeDOMD(csize_t * offset, csize_t ns, csize_t sz, const uchar * md) const
 {
-    assert(0);
 }
 
 void ReadSeis::readDODF(csize_t * offset, csize_t ns, csize_t sz, uchar * df) const
 {
-    assert(0);
 }
 
 void WriteSeis::writeDODF(csize_t * offset, csize_t ns, csize_t sz, const uchar * df) const
 {
-    assert(0);
 }
 }}

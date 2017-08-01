@@ -12,11 +12,7 @@
 #include "cppfileapi.hh"
 #include "object/objsegy.hh"
 #include "data/datampiio.hh"
-
-namespace PIOL {
-extern std::pair<size_t, size_t> decompose(size_t sz, size_t numRank, size_t rank);     //TODO: TEMP!
-}
-
+#include "share/decomp.hh"
 using namespace PIOL;
 using namespace testing;
 
@@ -24,10 +20,10 @@ class MockFile : public File::ReadInterface
 {
     public :
     MOCK_CONST_METHOD0(readNs, size_t(void));
-    MOCK_METHOD0(readNt, size_t(void));
+    MOCK_CONST_METHOD0(readNt, size_t(void));
     MOCK_CONST_METHOD0(readInc, geom_t(void));
-    MOCK_CONST_METHOD0(readText, std::string &(void));
-    MOCK_CONST_METHOD0(readname, std::string &(void));
+    MOCK_CONST_METHOD0(readText, const std::string &(void));
+    MOCK_CONST_METHOD0(readname, const std::string &(void));
 
     MOCK_CONST_METHOD4(readParam, void(csize_t, csize_t, File::Param *, csize_t));
     MOCK_CONST_METHOD4(readParam, void(csize_t, csize_t *, File::Param *, csize_t));
@@ -140,7 +136,6 @@ struct SetTest : public Test
                     EXPECT_CALL(*mock, readTrace(dec.second, An<csize_t *>(), _, _, 0))
                                                 .Times(Exactly(1U))
                                                 .WillRepeatedly(cpyprm(&prm.back()));
-
                     set->add(std::move(mock));
                 }
     }

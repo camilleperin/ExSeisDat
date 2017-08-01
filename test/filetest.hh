@@ -102,8 +102,11 @@ struct FileTest : public Test
     std::shared_ptr<TData> dat;
     std::shared_ptr<Obj::SEGYFileHeader> fo;
 
+    bool initTr;
+
     FileTest()
     {
+        initTr = false;
         testEBCDIC = false;
         rfile = nullptr;
         wfile = nullptr;
@@ -231,10 +234,13 @@ struct FileTest : public Test
             getBigEndian(int32_t(std::lround(xNum(i)/scale)), &md[xSrc]);
             getBigEndian(int32_t(std::lround(yNum(i)/scale)), &md[ySrc]);
         }
+        initTr = true;
     }
 
     void initReadTrMock(size_t ns, size_t offset)
     {
+        if (!initTr)
+            initTrBlock();
         std::vector<uchar>::iterator iter = tr.begin() + offset*SEGSz::getMDSz();
         EXPECT_CALL(*rmock.get(), readDOMD(offset, ns, 1U, _))
                     .Times(Exactly(1))
@@ -259,6 +265,9 @@ struct FileTest : public Test
 
     void initReadTrHdrsMock(size_t ns, size_t tn)
     {
+        if (!initTr)
+            initTrBlock();
+
         size_t zero = 0U;
         EXPECT_CALL(*rmock.get(), readDOMD(zero, ns, tn, _))
                     .Times(Exactly(1))
@@ -290,6 +299,9 @@ struct FileTest : public Test
 
     void initRandReadTrHdrsMock(size_t ns, size_t tn)
     {
+        if (!initTr)
+            initTrBlock();
+
         File::Param prm(tn);
         std::vector<size_t> offset(tn);
         std::iota(offset.begin(), offset.end(), 0);
@@ -325,6 +337,9 @@ struct FileTest : public Test
     template <bool readPrm = false, bool RmRule = false>
     void readTraceTest(csize_t offset, size_t tn)
     {
+        if (!initTr)
+            initTrBlock();
+
         size_t tnRead = (offset + tn > nt && nt > offset ? nt - offset : tn);
         std::vector<uchar> buf;
         if (isMock)
@@ -402,6 +417,9 @@ struct FileTest : public Test
     template <bool readPrm = false>
     void readRandomTraceTest(size_t tn, const std::vector<size_t> offset)
     {
+        if (!initTr)
+            initTrBlock();
+
         ASSERT_EQ(tn, offset.size());
         std::vector<uchar> buf;
         if (isMock)
@@ -465,6 +483,7 @@ struct FileTest : public Test
 
     void writeHO()
     {
+        ASSERT_FALSE(isRead);
         if (isMock)
         {
             size_t fsz = SEGSz::getHOSz() + nt*SEGSz::getDOSz(ns);
@@ -506,6 +525,7 @@ struct FileTest : public Test
 
     void writeTrHdrGridTest(size_t offset)
     {
+        ASSERT_FALSE(isRead);
         std::vector<uchar> tr(SEGSz::getMDSz());
         getBigEndian(ilNum(offset), tr.data()+il);
         getBigEndian(xlNum(offset), tr.data()+xl);
@@ -525,6 +545,7 @@ struct FileTest : public Test
     void initWriteTrHdrCoord(std::pair<size_t, size_t> item, std::pair<int32_t, int32_t> val,
                              int16_t scal, size_t offset, std::vector<uchar> * tr)
     {
+        ASSERT_TRUE(isMock);
         getBigEndian(scal,              &tr->at(ScaleCoord));
         getBigEndian(val.first,         &tr->at(item.first));
         getBigEndian(val.second,        &tr->at(item.second));
@@ -533,7 +554,10 @@ struct FileTest : public Test
                                                         .WillOnce(check3(tr->data(), SEGSz::getMDSz()));
     }
 
-    void initWriteHeaders(size_t filePos, uchar * md) {
+    void initWriteHeaders(size_t filePos, uchar * md)
+    {
+        ASSERT_TRUE(isMock);
+        ASSERT_FALSE(isRead);
         coord_t src = coord_t(xNum(filePos), yNum(filePos));
         coord_t rcv = coord_t(xNum(filePos), yNum(filePos));
         coord_t cmp = coord_t(xNum(filePos), yNum(filePos));
@@ -555,6 +579,7 @@ struct FileTest : public Test
     template <bool writePrm = false>
     void writeTraceTest(csize_t offset, csize_t tn)
     {
+        ASSERT_FALSE(isRead);
         std::vector<uchar> buf;
         if (isMock)
         {
@@ -626,6 +651,7 @@ struct FileTest : public Test
     template <bool writePrm = false>
     void writeRandomTraceTest(size_t tn, const std::vector<size_t> offset)
     {
+        ASSERT_FALSE(isRead);
         ASSERT_EQ(tn, offset.size());
         std::vector<uchar> buf;
         if (isMock)
@@ -697,7 +723,7 @@ struct FileTest : public Test
     template <bool Copy>
     void writeTraceHeaderTest(csize_t offset, csize_t tn)
     {
-        const bool isMock = true;
+        ASSERT_FALSE(isRead);
         std::vector<uchar> buf;
         if (isMock)
         {

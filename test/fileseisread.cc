@@ -49,7 +49,7 @@ TEST_F(FileSeisRead, FileReadHOAPI)
 TEST_F(FileSeisRead, FileReadTraceHeader)
 {
     makeMock();
-    initTrBlock();
+
     for (size_t i = 0; i < nt; i++)
         initReadTrMock(ns, i);
 }
@@ -57,7 +57,7 @@ TEST_F(FileSeisRead, FileReadTraceHeader)
 TEST_F(FileSeisRead, FileReadTrHdrBigNs)
 {
     makeMock();
-    initTrBlock();
+
 
     const size_t bigns = 10000;
     rfile->ns = bigns;
@@ -67,14 +67,14 @@ TEST_F(FileSeisRead, FileReadTrHdrBigNs)
 TEST_F(FileSeisRead, FileReadFileTrs)
 {
     makeMock();
-    initTrBlock();
+
     initReadTrHdrsMock(ns, nt);
 }
 
 TEST_F(FileSeisRead, FileReadFileTrsRandom)
 {
     makeMock();
-    initTrBlock();
+
     initRandReadTrHdrsMock(ns, nt);
 }
 
@@ -91,7 +91,7 @@ TEST_F(FileSeisRead, FileReadTraceBigNSWPrm)
     nt = 100;
     ns = 10000;
     makeMock();
-    initTrBlock();
+
     readTraceTest<true>(10, nt);
 }
 
@@ -110,7 +110,7 @@ TEST_F(FileSeisRead, FileReadTraceWPrmBigOffset)
     ns = 3000;
     makeMock();
 #warning //TODO: should be readTraceTest( 3728270, nt)?
-    initTrBlock();
+
     readTraceTest<true>(3728270, 3000);
 }
 
@@ -120,7 +120,7 @@ TEST_F(FileSeisRead, FileReadRandomTrace)
     ns = 300;
     size_t size = 100U;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, nt, 1337);
     readRandomTraceTest(size, offsets);
 }
@@ -131,7 +131,7 @@ TEST_F(FileSeisRead, FileReadRandomTraceWPrm)
     ns = 300;
     size_t size = 100U;
     makeMock();
-    initTrBlock();
+
 
     auto offsets = getRandomVec(size, nt, 1337);
     readRandomTraceTest<true>(size, offsets);
@@ -151,7 +151,7 @@ TEST_F(FileSeisRead, FarmFileReadTraceWPrmBigNt)
     nt = 3728270;
     ns = 300;
     makeMock();
-    initTrBlock();
+
     readTraceTest<true>(0, nt);
 }
 
@@ -161,7 +161,7 @@ TEST_F(FileSeisRead, FarmFileReadRandomTraceBigNt)
     ns = 300;
     size_t size = nt/2;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, nt, 1337);
     readRandomTraceTest(size, offsets);
 }
@@ -172,7 +172,7 @@ TEST_F(FileSeisRead, FarmFileReadRandomTraceWPrmBigNt)
     ns = 300;
     size_t size = nt/2;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, nt, 1337);
     readRandomTraceTest<true>(size, offsets);
 }
@@ -190,7 +190,7 @@ TEST_F(FileSeisRead, FileReadTraceWPrmZeroNt)
     nt = 0;
     ns = 10;
     makeMock();
-    initTrBlock();
+
     readTraceTest<true>(10, nt);
 }
 
@@ -200,7 +200,7 @@ TEST_F(FileSeisRead, FileReadRandomTraceZeroNt)
     ns = 10;
     size_t size = nt;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, 10U, 1337);
     readRandomTraceTest(size, offsets);
 }
@@ -211,7 +211,7 @@ TEST_F(FileSeisRead, FileReadRandomTraceWPrmZeroNt)
     ns = 10;
     size_t size = nt;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, 10U, 1337);
     readRandomTraceTest<true>(size, offsets);
 }
@@ -229,7 +229,7 @@ TEST_F(FileSeisRead, FileReadTraceWPrmZeroNs)
     nt = 10;
     ns = 0;
     makeMock();
-    initTrBlock();
+
     readTraceTest<true>(0, nt);
 }
 
@@ -239,7 +239,7 @@ TEST_F(FileSeisRead, FileReadRandomTraceZeroNs)
     ns = 0;
     size_t size = 5U;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, nt, 1337);
     readRandomTraceTest(size, offsets);
 }
@@ -250,7 +250,7 @@ TEST_F(FileSeisRead, FileReadRandomTraceWPrmZeroNs)
     ns = 0;
     size_t size = 5U;
     makeMock();
-    initTrBlock();
+
     auto offsets = getRandomVec(size, nt, 1337);
     readRandomTraceTest<true>(size, offsets);
 }
@@ -269,7 +269,7 @@ TEST_F(FileSeisRead, FileReadTraceBigNSWPrmRuleRm)
     nt = 100;
     ns = 10000;
     makeMock();
-    initTrBlock();
+
     readTraceTest<true, true>(10, nt);
 }
 
@@ -286,6 +286,6 @@ TEST_F(FileSeisRead, FileReadTraceWPrmBigOffsetRuleRm)
     nt = 3738270;
     ns = 3000;
     makeMock();
-    initTrBlock();
+
     readTraceTest<true, true>(3728270, 3000);
 }
