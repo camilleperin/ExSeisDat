@@ -34,7 +34,7 @@ ReadSEGY::ReadSEGY(Piol piol_, std::string name_, std::shared_ptr<Data::Interfac
     Init(&opt);
 }
 
-ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Read))
+ReadSEGY::ReadSEGY(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Read))
 {
     const Opt opt;
     Init(&opt);

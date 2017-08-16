@@ -1,4 +1,4 @@
-#include "objsegytest.hh"
+#include "objtest.hh"
 TEST_F(ReadObjSpecTest, SEGYHORead1)
 {
     makeSEGY(100, 100, 10e-6, 5);

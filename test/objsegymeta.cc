@@ -1,4 +1,4 @@
-#include "objsegytest.hh"
+#include "objtest.hh"
 TEST_F(ReadObjSpecTest, TestBypassConstructor)
 {
     makeSEGY(10, 10);

@@ -6,6 +6,10 @@
  *   \brief
  *   \details
  *//*******************************************************************************************/
+#include <limits.h>
+#include <stdlib.h>
+#include <string>
+
 #include "json.hpp"
 #include "object/objseis.hh"
 #include "data/datampiio.hh"
@@ -20,6 +24,8 @@ namespace PIOL { namespace Obj {
 
 SeisFileHeader::SeisFileHeader(const std::vector<uchar> & dat)
 {
+    nt = 0LU;
+    text = "";
     nlohmann::json jf = nlohmann::json::parse(dat.begin(), dat.end());
     SeisF::get(&bytes, "bytes", jf);
     SeisF::get(&o1, "o1", jf);
@@ -55,32 +61,90 @@ nlohmann::json SeisFileHeader::set(void)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////      Constructor & Destructor      ///////////////////////////////
-
-std::vector<std::shared_ptr<Data::Interface>> makeMultiData(Piol piol, std::vector<std::string> & names, FileMode mode)
+void findReplace(const std::string & matcher, const std::string & replace, std::string & target)
 {
-    std::vector<std::shared_ptr<Data::Interface>> data;
-    for (auto name : names)
-        data.push_back(std::make_shared<Data::MPIIO>(piol, name, mode));
-    return data;
+    size_t pos = target.find(matcher);
+    if (pos != std::string::npos)
+        target.replace(pos, matcher.size(), replace);
+}
+
+std::string removeAfterLastChar(char matcher, const std::string & target)
+{
+    size_t pos = target.find_last_of(matcher);
+    if (pos != std::string::npos)
+        return target.substr(0LU, pos);
+    return target;
+}
+
+std::string removeBeforeLastChar(char matcher, const std::string & target)
+{
+    size_t pos = target.find_last_of(matcher);
+    if (pos != std::string::npos)
+        return target.substr(pos);
+    return "";
+}
+
+std::string getDirName(const std::string target)
+{
+    return removeAfterLastChar('/', target);
+}
+
+std::string getBaseName(const std::string & target)
+{
+    return removeBeforeLastChar('/', target);
+}
+
+std::string getExt(const std::string & target)
+{
+    return removeBeforeLastChar('.', target);
 }
 
 void ReadSeis::Init(const Opt * opt)
 {
+#warning Have an option to change the project directory
+
 //TODO: This function will need to detect the file structure based on the header
     std::vector<uchar> dat(data->getFileSz());
     data->read(0LU, dat.size(), dat.data());
 
     desc = std::make_shared<SeisFileHeader>(dat);
 
-    std::cout << "n1 " << desc->n1 << " o1 " << desc->o1 << " d1 " << desc->d1
-              << " endianness " << (desc->endian == SeisF::Endian::Little ? "little" : "big")
-              <<  " packetSz " << desc->packetSz << std::endl << " extents ";
-    for (auto ext : desc->extents)
-        std::cout << ext << " " << std::endl;
+    //Create a path to the appropriate datadir folder
+    std::string path;
+    if (opt->projName ==  "")
+    {
+        auto * cpath = realpath(name.c_str(), NULL);
+        path.assign(cpath);
+        free(cpath);
+        path = getDirName(path);
+        std::cout << "path " << path << std::endl;
+        findReplace("/dataset", "", path);
+    }
+    else
+    {
+        const std::string confFile("~/.opencps/opencps.prefs");
+        auto conf = std::make_shared<DataT>(piol, confFile);
+        std::vector<uchar> cdat(conf->getFileSz());
+        conf->read(0LU, cdat.size(), cdat.data());
+        nlohmann::json jf = nlohmann::json::parse(cdat.begin(), cdat.end());
+        path = jf["com.ogi.opencps.project_paths"][opt->projName];
+    }
+        //traceBlocks = makeMultiData(piol, path, desc->extents, FileMode::Read);
 
-    std::cout << desc->set() << std::endl;
-
-    traceBlocks = makeMultiData(piol, desc->extents, FileMode::Read);
+    std::string projVar = "${project}";
+    for (auto name : desc->extents)
+    {
+        std::string ext = getExt(name);
+        std::cout << ext << std::endl;
+        findReplace(projVar, path, name);
+        auto tempDat = std::make_shared<DataT>(piol, name, FileMode::Read);
+        if (ext.find(".tr") != std::string::npos)
+            traceBlocks.push_back(tempDat);
+        else if (ext.find(".hd") != std::string::npos)
+            headerBlocks.push_back(tempDat);
+        else if (ext.find(".db") != std::string::npos)
+            dbBlocks.push_back(tempDat);
+    }
 }
 
 ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)

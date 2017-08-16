@@ -1,4 +1,4 @@
-#include "objsegytest.hh"
+#include "objtest.hh"
 TEST_F(ReadObjIntegTest, SEGYHORead1)
 {
     makeReadRealSEGY(smallSEGYFile, 400, 261, 20e-6, 5);

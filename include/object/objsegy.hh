@@ -21,7 +21,7 @@ struct SEGYFileHeader;
 class ReadSEGY : public ReadInterface
 {
     public :
-    typedef Data::MPIIO Data;
+    typedef Data::MPIIO DataT;
     std::shared_ptr<SEGYFileHeader> desc;
 
     /*! \brief The Read SEG-Y options structure. Currently empty.
@@ -82,7 +82,7 @@ class ReadSEGY : public ReadInterface
 class WriteSEGY : public WriteInterface
 {
     public :
-    typedef Data::MPIIO Data;
+    typedef Data::MPIIO DataT;
     /*! \brief The Write SEG-Y options structure. Currently empty.
     */
     struct Opt
@@ -112,7 +112,7 @@ class WriteSEGY : public WriteInterface
      */
     WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_);
 
-    WriteSEGY(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Write))
+    WriteSEGY(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Write))
     {}
 
     ~WriteSEGY(void);

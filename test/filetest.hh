@@ -87,10 +87,10 @@ struct FileTest : public Test
 
     typedef typename R::DObj RObj;
     typedef typename T::DObj TObj;
-    typedef typename TObj::Data TData;
-    typedef typename RObj::Data RData;
+    typedef typename TObj::DataT TData;
+    typedef typename RObj::DataT RData;
 
-    typename TObj::Data::Opt d;
+    typename TObj::DataT::Opt d;
     typename T::Opt wopt;
     typename R::Opt ropt;
 

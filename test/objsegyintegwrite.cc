@@ -1,4 +1,4 @@
-#include "objsegytest.hh"
+#include "objtest.hh"
 TEST_F(WriteObjIntegTest, SEGYHOWrite1)
 {
     makeRealSEGY(tempFile);

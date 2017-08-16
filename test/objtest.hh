@@ -1,6 +1,6 @@
+#include <iconv.h>
 #include <memory>
 #include <string>
-#include <iconv.h>
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "global.hh"
@@ -351,18 +351,59 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
         piol->isErr();
         Mock::AllowLeak(mock.get());
 
-#warning finish checking all parameters
-        nlohmann::json jf = {
-            {"bytes", 4},
-            {"o1", 0.0},
+        nlohmann::json jf =
+        {
+            {"bytes", 2},
             {"d1", inc},
-            {"n1", ns},
-            {"dims", {"TIME"}},
+            {"dims", { "TIME", "TRACE", "GATHER" }},
             {"endianness", "little"},
-            {"separateHeaders", true},
-//            {"extents", {"NAME1", "NAME2"}},
-            {"headers", {"SRC_X:double:0", "SRC_Y:double:8"}},
-            {"packet", 300}
+            {"extents", {
+            "${project}/datadir/opencps_u0y9utuh/datasets/small_piol.seis.hist",
+            "${project}/datadir/opencps_u0y9utuh/datasets/small_piol.seis.db0",
+            "${project}/datadir/opencps_u0y9utuh/datasets/small_piol.seis.hd0",
+            "${project}/datadir/opencps_u0y9utuh/datasets/small_piol.seis.tr0"}},
+            {"gathered", true},
+            {"headers", {
+                "FFID:int32:0",
+                "CHANNEL:int32:4",
+                "CMP:int32:8",
+                "TRC_TYPE:int32:12",
+                "FOLD:int32:16",
+                "OFFSET:float:20",
+                "REC_ELEV:float:24",
+                "SRC_ELEV:float:28",
+                "SRC_DEPTH:float:32",
+                "GUN:int16:36",
+                "SRC_X:double:38",
+                "SRC_Y:double:46",
+                "REC_X:double:54",
+                "REC_Y:double:62",
+                "APPLIED_STAT:float:70",
+                "TOP_MUTE:float:74",
+                "BOT_MUTE:float:78",
+                "XLINE:int32:82",
+                "BIN_X:double:86",
+                "BIN_Y:double:94",
+                "AZIMUTH:float:102",
+                "ILINE:int32:106",
+                "SEQ:int32:110",
+                "DEPTH:float:114",
+                "VSPEED:int32:118",
+                "DSRMAX:int32:122",
+                "OSECSNAV:int32:126",
+                "OUSECNAV:int32:130",
+                "SENSOR:int32:134",
+                "VCMG:int32:138",
+                "SVID:int32:142",
+                "GRND_STA:int32:146",
+                "TRACE_NUMBER:int32:150"}},
+            {"interactivecoords", {}},
+            {"l1", "TIME"},
+            {"maxntr", 400},
+            {"n1", ns},
+            {"o1", 0.0},
+            {"packet", 20},
+            {"separateHeaders", true}
         };
 
         std::cout << jf << std::endl;
@@ -372,7 +413,7 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
         EXPECT_CALL(*mock, read(0LU, jout.size(), _)).Times(Exactly(1)).WillOnce(SetArrayArgument<2>(jout.begin(), jout.end()));
 
         piol->isErr();
-        obj.reset(new Obj::ReadSeis(piol, notFile, mock));
+        obj.reset(new Obj::ReadSeis(piol, smallSeisFile, mock));
         piol->isErr();
 
         auto desc = obj->readHO();

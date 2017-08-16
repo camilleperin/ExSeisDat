@@ -188,12 +188,12 @@ int getMPIMode(FileMode mode)
     }
 }
 
-MPIIO::MPIIO(Piol piol_, const std::string name_, const MPIIO::Opt & opt, FileMode mode) : PIOL::Data::Interface(piol_, name_)
+MPIIO::MPIIO(Piol piol_, const std::string name_, const MPIIO::Opt & opt, const FileMode mode) : PIOL::Data::Interface(piol_, name_)
 {
     Init(opt, mode);
 }
 
-MPIIO::MPIIO(Piol piol_, const std::string name_, FileMode mode) : PIOL::Data::Interface(piol_, name_)
+MPIIO::MPIIO(Piol piol_, const std::string name_, const FileMode mode) : PIOL::Data::Interface(piol_, name_)
 {
     const MPIIO::Opt opt;
     Init(opt, mode);

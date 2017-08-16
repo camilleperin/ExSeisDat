@@ -1,4 +1,4 @@
-#include "objsegytest.hh"
+#include "objtest.hh"
 TEST_F(WriteObjSpecTest, SEGYHOWrite1)
 {
     makeWriteSEGY(10000, 2000);

@@ -44,16 +44,19 @@ struct SeisFileHeader : public FileMetadata
 class ReadSeis : public ReadInterface
 {
     public :
-    typedef Data::MPIIO Data;
+    typedef Data::MPIIO DataT;
     /*! \brief The ReadSeis options structure. Currently empty.
     */
     struct Opt
     {
         typedef ReadSeis Type;  //!< The Type of the class this structure is nested in
+        std::string projName;   //!< The name of the project the file is associated with (for finding .hd, .tr etc files)
+
         /* \brief Default constructor to prevent intel warnings
          */
         Opt(void)
         {
+            projName = "";
         }
     };
 
@@ -68,7 +71,7 @@ class ReadSeis : public ReadInterface
 
     ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_);
 
-    ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Read))
+    ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Read))
     { }
 
     size_t getFileSz(void) const;
@@ -88,6 +91,7 @@ class ReadSeis : public ReadInterface
     void readDODF(csize_t * offset, csize_t ns, csize_t sz, uchar * df) const;
 
     protected :
+    std::vector<std::shared_ptr<Data::Interface>> dbBlocks;     //!< Pointer to the Data layer object (polymorphic).
     std::vector<std::shared_ptr<Data::Interface>> traceBlocks;  //!< Pointer to the Data layer object (polymorphic).
     std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
     std::shared_ptr<SeisFileHeader> desc;
@@ -100,12 +104,13 @@ class ReadSeis : public ReadInterface
 class  WriteSeis : public WriteInterface
 {
     protected :
+    std::vector<std::shared_ptr<Data::Interface>> dbBlocks;     //!< Pointer to the Data layer object (polymorphic).
     std::vector<std::shared_ptr<Data::Interface>> traceBlocks;  //!< Pointer to the Data layer object (polymorphic).
-    std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> headerBlocks; //!< Pointer to the Data layer object (polymorphic).
     std::shared_ptr<SeisFileHeader> desc;
 
     public :
-    typedef Data::MPIIO Data;
+    typedef Data::MPIIO DataT;
     /*! \brief The WriteSeis options structure. Currently empty.
     */
     struct Opt
@@ -131,7 +136,7 @@ class  WriteSeis : public WriteInterface
     WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : WriteInterface(piol_, name_, data_)
     {}
 
-    WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Write))
+    WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Write))
     {}
 
     ~WriteSeis(void);

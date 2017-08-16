@@ -21,9 +21,9 @@ const std::string smallSEGYFile = "tmp/smallsegy.tmp";
 const std::string largeSEGYFile = "tmp/largesegy.tmp";
 const std::string bigTraceSEGYFile = "tmp/bigtracesegy.tmp";
 
-const std::string smallSeisFile = "tmp/seis/small.seis";
-const std::string largeSeisFile = "tmp/seis/large.seis";
-const std::string bigTraceSeisFile = "tmp/seis/bigtrace.seis";
+const std::string smallSeisFile = "tmp/seis/dataset/small.seis";
+const std::string largeSeisFile = "tmp/seis/dataset/large.seis";
+const std::string bigTraceSeisFile = "tmp/seis/dataset/bigtrace.seis";
 
 int32_t ilNum(size_t i)
 {
