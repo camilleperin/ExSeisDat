@@ -35,7 +35,7 @@ struct SeisTraceHeader
 };
 
 template <typename T>
-void set(T * val, std::string name, nlohmann::json & j)
+void get(T * val, std::string name, nlohmann::json & j)
 {
     auto p = j.find(name);
     if (p != j.end())
@@ -43,7 +43,7 @@ void set(T * val, std::string name, nlohmann::json & j)
 }
 
 template <typename T>
-void set(std::vector<T> & val, std::string name, nlohmann::json & j)
+void get(std::vector<T> & val, std::string name, nlohmann::json & j)
 {
     auto p = j.find(name);
     if (p != j.end())

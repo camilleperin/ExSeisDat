@@ -26,6 +26,7 @@ ReadSeis::ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Ob
     : ReadInterface(piol_, name_, obj_)
 {
 }
+
 ///////////////////////////////////       Member functions      ///////////////////////////////////
 void ReadSeis::init(const Opt * opt)
 {

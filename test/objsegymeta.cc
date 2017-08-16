@@ -37,18 +37,18 @@ TEST_F(ReadObjIntegTest, BigSEGYFileSize)
 TEST_F(ReadObjSpecTest, ZeroSEGYFileSize)
 {
     makeSEGY(10, 10);
-    SEGYFileSizeTest(0U);
+    FileSizeTest(0U);
 }
 
 TEST_F(ReadObjSpecTest, SmallSEGYFileSize)
 {
     makeSEGY(10, 10);
-    SEGYFileSizeTest(40U*prefix(2U));
+    FileSizeTest(40U*prefix(2U));
 }
 
 TEST_F(ReadObjSpecTest, BigSEGYFileSize)
 {
     makeSEGY(10, 10);
-    SEGYFileSizeTest(8U*prefix(4U));
+    FileSizeTest(8U*prefix(4U));
 }
 

@@ -30,7 +30,14 @@ WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, const Opt * opt,
 WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_)
     : WriteInterface(piol_, name_, obj_)
 {
-    WriteSEGY::Opt opt;
+    Opt opt;
+    init(&opt);
+}
+
+WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_)
+    : WriteInterface(piol_, name_, std::make_shared<DObj>(piol_, name_))
+{
+    Opt opt;
     init(&opt);
 }
 
@@ -51,7 +58,7 @@ void WriteSEGY::deinit(void)
                 ho->text = text;
                 ho->ns = ns;
                 ho->nt = nt;
-
+                ho->incFactor = incFactor;
                 obj->writeHO(ho);
             }
             else

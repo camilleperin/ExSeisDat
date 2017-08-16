@@ -11,9 +11,48 @@
 #include "data/datampiio.hh"
 #include "share/seis.hh"
 #include "data/data.hh"
+#warning in
+#include <iostream>
+
 namespace PIOL { namespace Obj {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////    Class functions    ///////////////////////////////////////////////
+
+SeisFileHeader::SeisFileHeader(const std::vector<uchar> & dat)
+{
+    nlohmann::json jf = nlohmann::json::parse(dat.begin(), dat.end());
+    SeisF::get(&bytes, "bytes", jf);
+    SeisF::get(&o1, "o1", jf);
+    SeisF::get(&d1, "d1", jf);
+    SeisF::get(&n1, "n1", jf);
+
+    std::string end;
+    SeisF::get(&end, "endianness", jf);
+    endian = (end == "little" ? SeisF::Endian::Little : SeisF::Endian::Big);
+
+    SeisF::get(&headerFile, "separateHeaders", jf);
+    SeisF::get(extents, "extents", jf);
+    SeisF::get(&packetSz, "packet", jf);
+
+    inc = d1;
+    ns = n1;
+}
+
+nlohmann::json SeisFileHeader::set(void)
+{
+    nlohmann::json jf = {
+        {"bytes", bytes},
+        {"o1", o1},
+        {"d1", d1},
+        {"n1", n1},
+        {"endianness", (endian == SeisF::Endian::Little ? "little" : "big")},
+        {"separateHeaders", headerFile},
+        {"extents", extents},
+        {"packet", packetSz}
+    };
+    return jf;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////      Constructor & Destructor      ///////////////////////////////
 
@@ -33,6 +72,14 @@ void ReadSeis::Init(const Opt * opt)
 
     desc = std::make_shared<SeisFileHeader>(dat);
 
+    std::cout << "n1 " << desc->n1 << " o1 " << desc->o1 << " d1 " << desc->d1
+              << " endianness " << (desc->endian == SeisF::Endian::Little ? "little" : "big")
+              <<  " packetSz " << desc->packetSz << std::endl << " extents ";
+    for (auto ext : desc->extents)
+        std::cout << ext << " " << std::endl;
+
+    std::cout << desc->set() << std::endl;
+
     traceBlocks = makeMultiData(piol, desc->extents, FileMode::Read);
 }
 
@@ -47,24 +94,12 @@ ReadSeis::ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Da
     Init(&opt);
 }
 
+WriteSeis::~WriteSeis(void)
+{
+    writeHO(desc);
+}
 ///////////////////////////////////       Member functions      ///////////////////////////////////
 
-SeisFileHeader::SeisFileHeader(const std::vector<uchar> & dat)
-{
-    nlohmann::json jf = nlohmann::json::parse(dat.begin(), dat.end());
-    SeisF::set(&bytes, "bytes", jf);
-    SeisF::set(&o1, "o1", jf);
-    SeisF::set(&d1, "d1", jf);
-    SeisF::set(&n1, "n1", jf);
-
-    std::string end;
-    SeisF::set(&end, "endianness", jf);
-    endian = (end == "little" ? SeisF::Endian::Little : SeisF::Endian::Big);
-
-    SeisF::set(&headerFile, "separateHeaders", jf);
-    SeisF::set(extents, "extents", jf);
-    SeisF::set(&packetSz, "packet", jf);
-}
 
 size_t ReadSeis::getFileSz(void) const
 {
@@ -82,6 +117,8 @@ std::shared_ptr<FileMetadata> ReadSeis::readHO(void) const
 
 void WriteSeis::writeHO(const std::shared_ptr<FileMetadata> ho) const
 {
+    auto jout = desc->set().dump();
+    data->write(0LU, jout.size(), reinterpret_cast<const uchar *>(jout.data()));
 }
 
 void ReadSeis::readDO(csize_t offset, csize_t ns, csize_t sz, uchar * d) const

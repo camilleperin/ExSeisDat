@@ -29,6 +29,10 @@ WriteSeis::WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<
 {
 }
 
+WriteSeis::WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DObj>(piol_, name_))
+{
+}
+
 WriteSeis::~WriteSeis(void)
 {
     deinit();

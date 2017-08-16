@@ -1,12 +1,12 @@
 #include "objsegytest.hh"
 TEST_F(ReadObjSpecTest, SEGYHORead1)
 {
-    makeSEGY(100, 100, 10, 5);
+    makeSEGY(100, 100, 10e-6, 5);
 }
 
 TEST_F(ReadObjSpecTest, SEGYHORead2)
 {
-    makeSEGY(100, 0, 10, 1);
+    makeSEGY(100, 0, 10e-6, 1);
 }
 
 TEST_F(ReadObjSpecTest, SEGYHORead3)
@@ -16,7 +16,7 @@ TEST_F(ReadObjSpecTest, SEGYHORead3)
 
 TEST_F(ReadObjSpecTest, SEGYHORead4)
 {
-    makeSEGY(100, 100, 10, 0);
+    makeSEGY(100, 100, 10e-6, 0);
 }
 
 TEST_F(ReadObjSpecTest, SEGYHORead5)

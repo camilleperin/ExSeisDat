@@ -93,8 +93,7 @@ class WriteSeis : public WriteInterface
      */
     WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<Obj::WriteInterface> obj_);
 
-    WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DObj>(piol_, name_))
-    { }
+    WriteSeis(const Piol piol_, const std::string name_);
 
     /*! \brief Destructor. Processes any remaining flags
      */

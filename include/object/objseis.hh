@@ -28,7 +28,8 @@ struct SeisFileHeader : public FileMetadata
     size_t packetSz;
 
     SeisFileHeader(const std::vector<uchar> & dat);
-    SeisFileHeader(void) {}
+    SeisFileHeader(void) { }
+    nlohmann::json set(void);
 
     bool operator==(SeisFileHeader & other)
     {
@@ -132,6 +133,8 @@ class  WriteSeis : public WriteInterface
 
     WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<Data>(piol_, name_, FileMode::Write))
     {}
+
+    ~WriteSeis(void);
 
     void setFileSz(csize_t sz) const;
 

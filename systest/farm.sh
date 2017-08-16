@@ -39,8 +39,8 @@ mkdir $DIR_NAME
 #    Making sub-directories
 cp make.sh $DIR_NAME/
 cd $DIR_NAME
-mkdir src dat api util lib
-mkdir src/obj api/obj util/obj
+mkdir src dat api util lib json
+mkdir src/obj api/obj util/obj json/src
 
 if [ $PIOL_SYSTEM != "Tullow" ]; then
     lfs setstripe -c $STRIPE_COUNT dat

@@ -17,6 +17,10 @@ struct FileMetadata
     std::string text;   //!< Human readable text extracted from the file
     geom_t inc;         //!< The increment between samples in a trace
 
+    //For polymorphism
+    virtual ~FileMetadata(void)
+    {}
+
     bool operator==(FileMetadata & other)
     {
         return ns == other.ns && nt == other.nt && text == other.text && inc == other.inc;

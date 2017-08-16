@@ -153,8 +153,7 @@ class WriteSEGY : public WriteInterface
      */
     ~WriteSEGY(void);
 
-    WriteSEGY(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DObj>(piol_, name_))
-    { }
+    WriteSEGY(const Piol piol_, const std::string name_);
 
     void writeText(const std::string text_);
 

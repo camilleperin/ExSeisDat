@@ -1,17 +1,17 @@
 #include "objsegytest.hh"
 TEST_F(ReadObjIntegTest, SEGYHORead1)
 {
-    makeReadRealSEGY(smallSEGYFile, 400, 261, 20, 5);
+    makeReadRealSEGY(smallSEGYFile, 400, 261, 20e-6, 5);
 }
 
 TEST_F(ReadObjIntegTest, SEGYHORead2)
 {
-    makeReadRealSEGY(bigTraceSEGYFile, 40000, 32000, 20, 5);
+    makeReadRealSEGY(bigTraceSEGYFile, 40000, 32000, 20e-6, 5);
 }
 
 TEST_F(ReadObjIntegTest, SEGYHORead3)
 {
-    makeReadRealSEGY(largeSEGYFile, 2000000U, 1000U, 20, 5);
+    makeReadRealSEGY(largeSEGYFile, 2000000U, 1000U, 20e-6, 5);
 }
 
 TEST_F(ReadObjIntegTest, SEGYReadSingle1)

@@ -14,6 +14,7 @@
 #define protected public
 #include "object/object.hh"
 #include "object/objsegy.hh"
+#include "object/objseis.hh"
 #undef private
 #undef protected
 #include "segymdextra.hh"
@@ -46,44 +47,37 @@ enum class Block
     DO
 };
 
-class ObjTest : public Test
+template <class R>
+class BaseObjTest : public Test
 {
-    protected :
+    public :
     Piol piol;
-    bool testEBCDIC;
     Comm::MPI::Opt opt;
-    std::string testString = {"This is a string for testing EBCDIC conversion etc."};
     std::shared_ptr<MockData> mock;
     std::unique_ptr<Obj::ReadInterface> obj;
-    std::vector<uchar> ho;
+
+    geom_t inc;
     size_t nt;
     size_t ns;
-    int inc;
-    int format;
 
-    ObjTest()
+    BaseObjTest(void)
     {
-        testEBCDIC = false;
         mock = nullptr;
         obj = nullptr;
         opt.initMPI = false;
         piol = std::make_shared<ExSeisPIOL>(opt);
-        ho.resize(SEGSz::getHOSz());
     }
 
     template <bool Check = true>
-    void makeReadRealSEGY(std::string name, size_t nt_ = 0, size_t ns_ = 0, int inc_ = 0, int format_ = 0)
+    void makeReadReal(std::string name, size_t nt_, size_t ns_, geom_t inc_)
     {
         auto data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Read);
         piol->isErr();
-        obj.reset(new Obj::ReadSEGY(piol, name, data));
+        obj.reset(new R(piol, name, data));
         piol->isErr();
         ns = ns_;
         nt = nt_;
         inc = inc_;
-        format = format_;
-        if (Check)
-            readHOPatternTest();
     }
 
     void readHOPatternTest(std::string text = "")
@@ -91,22 +85,60 @@ class ObjTest : public Test
         auto desc = obj->readHO();
         EXPECT_EQ(desc->ns, ns);
         EXPECT_EQ(desc->nt, nt);
-        EXPECT_DOUBLE_EQ(desc->inc, geom_t(inc) * 1e-6);
 
         char len = strlen(desc->text.c_str());
 
         for (size_t i = 0; i < len; i++)
             EXPECT_EQ(text[i], desc->text[i]);
-
+        EXPECT_DOUBLE_EQ(desc->inc, inc);
     }
 
+    void FileSizeTest(size_t sz)
+    {
+        EXPECT_CALL(*mock, getFileSz()).WillOnce(Return(sz));
+        piol->isErr();
+        EXPECT_EQ(sz, obj->getFileSz());
+    }
+};
 
-    virtual void makeSEGY(size_t nt_, size_t ns_, int inc_ = 10, int format_ = 5)
+template <class R>
+class ReadObjTest : public BaseObjTest<R>
+{
+};
+
+template <>
+class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
+{
+    public :
+    std::vector<uchar> ho;
+    bool testEBCDIC;
+    std::string testString = {"This is a string for testing EBCDIC conversion etc."};
+    int format;
+
+    ReadObjTest<Obj::ReadSEGY>(void) : BaseObjTest<Obj::ReadSEGY>()
+    {
+        testEBCDIC = false;
+        ho.resize(SEGSz::getHOSz());
+    }
+
+    //The parameters passed should match those of the file generated.
+    template <bool Check = true>
+    void makeReadRealSEGY(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0, int format_ = 0)
+    {
+        format = format_;
+        makeReadReal(name, nt_, ns_, inc_);
+        if (Check)
+            readHOPatternTest();
+    }
+
+    //Create the read object with a mock data layer
+    void makeSEGY(size_t nt_, size_t ns_, geom_t inc_ = 10e-6, int format_ = 5)
     {
         nt = nt_;
         ns = ns_;
         inc = inc_;
         format = format_;
+        int sinc = inc / SI::Micro;
 
         mock = std::make_shared<MockData>(piol, notFile);
 
@@ -133,8 +165,8 @@ class ObjTest : public Test
 
         ho[NumSample+1] = ns & 0xFF;
         ho[NumSample] = ns >> 8 & 0xFF;
-        ho[Increment+1] = inc_ & 0xFF;
-        ho[Increment] = inc_ >> 8 & 0xFF;
+        ho[Increment+1] = sinc & 0xFF;
+        ho[Increment] = sinc >> 8 & 0xFF;
         ho[Type+1] = format;
 
         EXPECT_CALL(*mock, getFileSz()).Times(Exactly(1)).WillOnce(Return(SEGSz::getHOSz() +
@@ -147,21 +179,11 @@ class ObjTest : public Test
         auto desc = obj->readHO();
         EXPECT_EQ(ns, desc->ns);
         EXPECT_EQ(nt, desc->nt);
-        EXPECT_DOUBLE_EQ(geom_t(inc) * SI::Micro, desc->inc);
+        EXPECT_DOUBLE_EQ(inc, desc->inc);
         for (size_t i = 0; i < SEGSz::getTextSz(); i++)
             EXPECT_EQ(testString[i % testString.size()], desc->text[i]);
     }
 
-    ~ObjTest()
-    {
-    }
-
-    void SEGYFileSizeTest(size_t sz)
-    {
-        EXPECT_CALL(*mock, getFileSz()).WillOnce(Return(sz));
-        piol->isErr();
-        EXPECT_EQ(sz, obj->getFileSz());
-    }
 
     template <Block Type, bool MOCK = true>
     void readTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
@@ -297,52 +319,159 @@ class ObjTest : public Test
     }
 };
 
-typedef ObjTest ReadObjTest;
-
-class WriteObjTest : public ReadObjTest
+template <>
+class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
 {
-    protected :
-    Piol piol;
-    Comm::MPI::Opt opt;
-    std::shared_ptr<MockData> mock;
-    std::shared_ptr<Obj::WriteInterface> wobj;
-    std::shared_ptr<Data::MPIIO> data;
-    WriteObjTest()
+    public :
+    std::string testString = {"This is a string for testing EBCDIC conversion etc."};
+
+    ReadObjTest<Obj::ReadSeis>(void) : BaseObjTest<Obj::ReadSeis>()
     {
-        mock = nullptr;
-        opt.initMPI = false;
-        piol = std::make_shared<ExSeisPIOL>(opt);
     }
 
-    void makeRealSEGY(std::string name, size_t ns_ = 200, int inc_ = 10, int format_ = 5)
+    //The parameters passed should match those of the file generated.
+    template <bool Check = true>
+    void makeReadRealSeis(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0, int format_ = 0)
     {
-        data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Test);
-        piol->isErr();
-        wobj.reset(new Obj::WriteSEGY(piol, name, data));
-        piol->isErr();
-        obj.reset(new Obj::ReadSEGY(piol, name, data));
-        piol->isErr();
-
-        nt = 0;
-        ns = ns_;
-        inc = inc_;
         format = format_;
+        makeReadReal(name, nt_, ns_, inc_);
+        if (Check)
+            readHOPatternTest();
     }
 
-    void makeSEGY(size_t nt_, size_t ns_, int inc_ = 10, int format_ = 5)
+    //Create the read object with a mock data layer
+    virtual void makeSeis(size_t nt_, size_t ns_, geom_t inc_ = 10e-6)
     {
         nt = nt_;
         ns = ns_;
         inc = inc_;
-        format = format_;
+
         mock = std::make_shared<MockData>(piol, notFile);
+
         piol->isErr();
-        wobj.reset(new Obj::WriteSEGY(piol, notFile, mock));
+        Mock::AllowLeak(mock.get());
+
+#warning finish checking all parameters
+        nlohmann::json jf = {
+            {"bytes", 4},
+            {"o1", 0.0},
+            {"d1", inc},
+            {"n1", ns},
+            {"dims", {"TIME"}},
+            {"endianness", "little"},
+            {"separateHeaders", true},
+//            {"extents", {"NAME1", "NAME2"}},
+            {"headers", {"SRC_X:double:0", "SRC_Y:double:8"}},
+            {"packet", 300}
+        };
+
+        std::cout << jf << std::endl;
+
+        auto jout = jf.dump();
+        EXPECT_CALL(*mock, getFileSz()).Times(Exactly(1)).WillOnce(Return(jout.size()));
+        EXPECT_CALL(*mock, read(0LU, jout.size(), _)).Times(Exactly(1)).WillOnce(SetArrayArgument<2>(jout.begin(), jout.end()));
+
+        piol->isErr();
+        obj.reset(new Obj::ReadSeis(piol, notFile, mock));
+        piol->isErr();
+
+        auto desc = obj->readHO();
+        EXPECT_EQ(ns, desc->ns);
+        EXPECT_DOUBLE_EQ(inc, desc->inc);
+        EXPECT_EQ(testString, desc->text);
+        EXPECT_EQ(nt, desc->nt);
+    }
+
+    template <Block Type, bool MOCK = true>
+    void readTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
+    {
+        EXPECT_EQ(1, 0);
+    }
+
+    template <Block Type, bool MOCK = true>
+    void readRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
+    {
+        EXPECT_EQ(1, 0);
+    }
+};
+
+template <class W, class R>
+class BaseWriteObjTest : public ReadObjTest<R>
+{
+    public :
+    using BaseObjTest<Obj::ReadSEGY>::inc;
+    using BaseObjTest<Obj::ReadSEGY>::nt;
+    using BaseObjTest<Obj::ReadSEGY>::ns;
+    using BaseObjTest<Obj::ReadSEGY>::piol;
+    using BaseObjTest<Obj::ReadSEGY>::opt;
+    using BaseObjTest<Obj::ReadSEGY>::mock;
+    using BaseObjTest<Obj::ReadSEGY>::obj;
+
+
+//    Piol piol;
+//    Comm::MPI::Opt opt;
+//    std::shared_ptr<MockData> mock;
+    std::shared_ptr<Data::MPIIO> data;
+    std::shared_ptr<Obj::WriteInterface> wobj;
+
+    BaseWriteObjTest() : ReadObjTest<R>()
+    {
+/*        mock = nullptr;
+        opt.initMPI = false;
+        piol = std::make_shared<ExSeisPIOL>(opt);*/
+    }
+
+    void makeRealSEGY(std::string name, size_t ns_, geom_t inc_)
+    {
+        nt = 0;
+        ns = ns_;
+        inc = inc_;
+
+        data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Test);
+        piol->isErr();
+        wobj.reset(new W(piol, name, data));
+        piol->isErr();
+        obj.reset(new R(piol, name, data));
         piol->isErr();
     }
 
-    ~WriteObjTest()
+    void makeWriteSEGY(size_t nt_, size_t ns_, geom_t inc_)
     {
+        nt = nt_;
+        ns = ns_;
+        inc = inc_;
+        mock = std::make_shared<MockData>(piol, notFile);
+        piol->isErr();
+        wobj.reset(new W(piol, notFile, mock));
+        piol->isErr();
+    }
+};
+
+
+
+template <class W, class R>
+class WriteObjTest : public BaseWriteObjTest<W, R>
+{
+};
+
+template <>
+class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>
+{
+    public :
+    int format;
+
+    void makeRealSEGY(std::string name, size_t ns_ = 200, geom_t inc_ = 10e-6, int format_ = 5)
+    {
+        format = format_;
+        BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeRealSEGY(name, ns_, inc_);
+    }
+
+    void makeWriteSEGY(size_t nt_, size_t ns_)
+    {
+        geom_t inc_ = 10e-6;
+        int format_ = 5;
+        format = format_;
+        BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeWriteSEGY(nt_, ns_, inc_);
     }
 
     template <bool MOCK = true>
@@ -355,14 +484,14 @@ class WriteObjTest : public ReadObjTest
                 std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
                 return;
             }
+            int sinc = inc / SI::Micro;
 
             for (size_t i = 0U; i < std::min(testString.size(), SEGSz::getTextSz()); i++)
                 ho[i] = testString[i];
-
             ho[NumSample+1] = ns & 0xFF;
             ho[NumSample] = ns >> 8 & 0xFF;
-            ho[Increment+1] = inc & 0xFF;
-            ho[Increment] = inc >> 8 & 0xFF;
+            ho[Increment+1] = sinc & 0xFF;
+            ho[Increment] = sinc >> 8 & 0xFF;
             ho[Type+1] = format;
             ho[3255U] = 1;
             ho[3500U] = 1;
@@ -374,10 +503,11 @@ class WriteObjTest : public ReadObjTest
 #warning Needs to be generalised for Seis
         auto fo = std::make_shared<Obj::SEGYFileHeader>();
         fo->incFactor = SI::Micro;
-        fo->inc = geom_t(inc) * SI::Micro;
+        fo->inc = inc;
         fo->ns = ns;
         fo->nt = nt;
         fo->text = testString;
+        assert(wobj);
         wobj->writeHO(fo);
 
         if (!MOCK)
@@ -512,8 +642,14 @@ class WriteObjTest : public ReadObjTest
     }
 };
 
-typedef ReadObjTest ReadObjSpecTest;
-typedef WriteObjTest WriteObjSpecTest;
-typedef ReadObjTest ReadObjIntegTest;
-typedef WriteObjTest WriteObjIntegTest;
+typedef ReadObjTest<Obj::ReadSEGY> ReadObjSpecTest;
+typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteObjSpecTest;
+typedef ReadObjTest<Obj::ReadSEGY> ReadObjIntegTest;
+typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteObjIntegTest;
+
+typedef ReadObjTest<Obj::ReadSeis> ReadSeisObjSpecTest;
+//typedef WriteSeisObjTest WriteObjSpecTest;
+typedef ReadObjTest<Obj::ReadSeis> ReadSeisObjIntegTest;
+//typedef WriteObjTest WriteObjIntegTest;
+
 

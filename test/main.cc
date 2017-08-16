@@ -16,13 +16,14 @@ const std::string smallFile = "tmp/smallSizeFile.tmp";
 const std::string largeFile = "tmp/largeSizeFile.tmp";
 const std::string plargeFile = "tmp/largeFilePattern.tmp";
 const std::string tempFile = "tmp/tempFile.tmp";
+
 const std::string smallSEGYFile = "tmp/smallsegy.tmp";
 const std::string largeSEGYFile = "tmp/largesegy.tmp";
 const std::string bigTraceSEGYFile = "tmp/bigtracesegy.tmp";
 
-const std::string smallSeisFile = "tmp/smallseis.tmp";
-const std::string largeSeisFile = "tmp/largeseis.tmp";
-const std::string bigTraceSeisFile = "tmp/bigtraceseis.tmp";
+const std::string smallSeisFile = "tmp/seis/small.seis";
+const std::string largeSeisFile = "tmp/seis/large.seis";
+const std::string bigTraceSeisFile = "tmp/seis/bigtrace.seis";
 
 int32_t ilNum(size_t i)
 {

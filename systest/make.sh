@@ -24,6 +24,7 @@ cp $PIOL_DIR/src/makefile src/
 
 cp $PIOL_DIR/makefile .
 cp $PIOL_DIR/compiler.cfg . 
+cp -r $PIOL_DIR/json/src/* json/src/
 
 cd src
 make -j 23 > /dev/null

@@ -103,7 +103,7 @@ void WriteSEGY::writeHO(const std::shared_ptr<FileMetadata> ho) const
 {
     if (ho)
     {
-        auto sho = static_cast<const SEGYFileHeader *>(ho.get());
+        auto sho = dynamic_cast<const SEGYFileHeader *>(ho.get());
         std::vector<uchar> buf(SEGSz::getHOSz());
         for (size_t i = 0; i < ho->text.size(); i++)
             buf[i] = ho->text[i];

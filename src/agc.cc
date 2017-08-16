@@ -15,21 +15,24 @@
 #include "global.hh"
 #include "ops/agc.hh"
 #include "share/api.hh"
+#warning
+#include <iostream>
 namespace PIOL { namespace File {
 /******************************************** Core *********************************************/
 void AGC(csize_t nt, csize_t ns, trace_t * trc, const AGCFunc func, size_t window, trace_t normR)
 {
-    window = (window % 2LU == 0LU ? window + 1LU : window);
+    window = (!(window % 2LU) ? window + 1LU : window);
     assert(ns > window);
     std::vector<trace_t> trcAGC(ns);
     size_t win2 = window/2LU;
     for (size_t i = 0LU; i < nt; i++)
     {
-        for (size_t j = 0LU;  j < win2 + 1LU; j++)
+        for (size_t j = 0LU;  j < win2; j++)
         {
             trcAGC[j] = func(&trc[i*ns], win2+j+1LU, normR, j);
             trcAGC[j + ns - win2] = func(&trc[(i+1LU)*ns - 2LU*win2 + j],  2LU*win2 - j, normR, win2);
         }
+        trcAGC[win2] = func(&trc[i*ns], 2LU*win2+1LU, normR, win2);
 
         for (size_t j = win2 + 1LU; j < ns - win2; j++)
             trcAGC[j] = func(&trc[i*ns+j - win2], window, normR, win2);
