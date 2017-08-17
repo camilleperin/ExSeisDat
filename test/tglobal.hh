@@ -13,6 +13,9 @@ extern const size_t largeSize;
 extern const size_t largeSEGYSize;
 extern const size_t largeSeisSize;
 
+extern const size_t smallNt;
+extern const size_t smallNs;
+
 extern const std::string notFile;
 extern const std::string zeroFile;
 extern const std::string smallFile;

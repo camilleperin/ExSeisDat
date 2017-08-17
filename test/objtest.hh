@@ -85,12 +85,11 @@ class BaseObjTest : public Test
         auto desc = obj->readHO();
         EXPECT_EQ(desc->ns, ns);
         EXPECT_EQ(desc->nt, nt);
+        EXPECT_NEAR(desc->inc, inc, 1e-8);
 
         char len = strlen(desc->text.c_str());
-
         for (size_t i = 0; i < len; i++)
             EXPECT_EQ(text[i], desc->text[i]);
-        EXPECT_DOUBLE_EQ(desc->inc, inc);
     }
 
     void FileSizeTest(size_t sz)
@@ -123,16 +122,16 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
 
     //The parameters passed should match those of the file generated.
     template <bool Check = true>
-    void makeReadRealSEGY(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0, int format_ = 0)
+    void makeReadReal(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0, int format_ = 0)
     {
         format = format_;
-        makeReadReal(name, nt_, ns_, inc_);
+        BaseObjTest<Obj::ReadSEGY>::makeReadReal<Check>(name, nt_, ns_, inc_);
         if (Check)
             readHOPatternTest();
     }
 
     //Create the read object with a mock data layer
-    void makeSEGY(size_t nt_, size_t ns_, geom_t inc_ = 10e-6, int format_ = 5)
+    void make(size_t nt_, size_t ns_, geom_t inc_ = 10e-6, int format_ = 5)
     {
         nt = nt_;
         ns = ns_;
@@ -331,16 +330,15 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
 
     //The parameters passed should match those of the file generated.
     template <bool Check = true>
-    void makeReadRealSeis(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0, int format_ = 0)
+    void makeReadReal(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0)
     {
-        format = format_;
-        makeReadReal(name, nt_, ns_, inc_);
+        BaseObjTest<Obj::ReadSeis>::makeReadReal<Check>(name, nt_, ns_, inc_);
         if (Check)
             readHOPatternTest();
     }
 
     //Create the read object with a mock data layer
-    virtual void makeSeis(size_t nt_, size_t ns_, geom_t inc_ = 10e-6)
+    virtual void make(size_t nt_, size_t ns_, geom_t inc_ = 10e-6)
     {
         nt = nt_;
         ns = ns_;
@@ -406,8 +404,6 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
             {"separateHeaders", true}
         };
 
-        std::cout << jf << std::endl;
-
         auto jout = jf.dump();
         EXPECT_CALL(*mock, getFileSz()).Times(Exactly(1)).WillOnce(Return(jout.size()));
         EXPECT_CALL(*mock, read(0LU, jout.size(), _)).Times(Exactly(1)).WillOnce(SetArrayArgument<2>(jout.begin(), jout.end()));
@@ -419,8 +415,12 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
         auto desc = obj->readHO();
         EXPECT_EQ(ns, desc->ns);
         EXPECT_DOUBLE_EQ(inc, desc->inc);
-        EXPECT_EQ(testString, desc->text);
+
+//        EXPECT_EQ(testString, desc->text); // Not available in Seis format
         EXPECT_EQ(nt, desc->nt);
+        EXPECT_EQ(dynamic_cast<Obj::ReadSeis *>(obj.get())->dbBlocks.size(),     1LU);
+        EXPECT_EQ(dynamic_cast<Obj::ReadSeis *>(obj.get())->traceBlocks.size(),  1LU);
+        EXPECT_EQ(dynamic_cast<Obj::ReadSeis *>(obj.get())->headerBlocks.size(), 1LU);
     }
 
     template <Block Type, bool MOCK = true>
@@ -462,7 +462,7 @@ class BaseWriteObjTest : public ReadObjTest<R>
         piol = std::make_shared<ExSeisPIOL>(opt);*/
     }
 
-    void makeRealSEGY(std::string name, size_t ns_, geom_t inc_)
+    void makeReal(std::string name, size_t ns_, geom_t inc_)
     {
         nt = 0;
         ns = ns_;
@@ -476,7 +476,7 @@ class BaseWriteObjTest : public ReadObjTest<R>
         piol->isErr();
     }
 
-    void makeWriteSEGY(size_t nt_, size_t ns_, geom_t inc_)
+    void makeWrite(size_t nt_, size_t ns_, geom_t inc_)
     {
         nt = nt_;
         ns = ns_;
@@ -501,18 +501,18 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
     public :
     int format;
 
-    void makeRealSEGY(std::string name, size_t ns_ = 200, geom_t inc_ = 10e-6, int format_ = 5)
+    void makeReal(std::string name, size_t ns_ = 200, geom_t inc_ = 10e-6, int format_ = 5)
     {
         format = format_;
-        BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeRealSEGY(name, ns_, inc_);
+        BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeReal(name, ns_, inc_);
     }
 
-    void makeWriteSEGY(size_t nt_, size_t ns_)
+    void makeWrite(size_t nt_, size_t ns_)
     {
         geom_t inc_ = 10e-6;
         int format_ = 5;
         format = format_;
-        BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeWriteSEGY(nt_, ns_, inc_);
+        BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeWrite(nt_, ns_, inc_);
     }
 
     template <bool MOCK = true>

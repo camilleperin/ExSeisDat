@@ -8,6 +8,10 @@ using namespace PIOL;
 const size_t magicNum1 = 137; //Number less than 256 that isn't 0.
 const size_t smallSize = 4U*prefix(1);
 const size_t largeSize = 10U*prefix(3);
+
+const size_t smallNt = 400;
+const size_t smallNs = 261;
+
 const size_t largeSEGYSize = (4U*1000U +240U)*2000000U + 3600U;
 
 const std::string notFile = "!£$%^&*()<>?:@~}{fakefile1234567890";

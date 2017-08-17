@@ -2,7 +2,7 @@
  *   \file
  *   \author Cathal O Broin - cathal@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
- *   \date July 2016
+ *   \date July 2017
  *   \brief
  *   \details
  *//*******************************************************************************************/
@@ -19,6 +19,7 @@
 #include <iostream>
 
 namespace PIOL { namespace Obj {
+csize_t scalSz = sizeof(float);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////    Class functions    ///////////////////////////////////////////////
 
@@ -40,7 +41,7 @@ SeisFileHeader::SeisFileHeader(const std::vector<uchar> & dat)
     SeisF::get(extents, "extents", jf);
     SeisF::get(&packetSz, "packet", jf);
 
-    inc = d1;
+    inc = d1 / geom_t(1000);
     ns = n1;
 }
 
@@ -101,12 +102,8 @@ std::string getExt(const std::string & target)
 
 void ReadSeis::Init(const Opt * opt)
 {
-#warning Have an option to change the project directory
-
-//TODO: This function will need to detect the file structure based on the header
     std::vector<uchar> dat(data->getFileSz());
     data->read(0LU, dat.size(), dat.data());
-
     desc = std::make_shared<SeisFileHeader>(dat);
 
     //Create a path to the appropriate datadir folder
@@ -117,7 +114,6 @@ void ReadSeis::Init(const Opt * opt)
         path.assign(cpath);
         free(cpath);
         path = getDirName(path);
-        std::cout << "path " << path << std::endl;
         findReplace("/dataset", "", path);
     }
     else
@@ -129,13 +125,11 @@ void ReadSeis::Init(const Opt * opt)
         nlohmann::json jf = nlohmann::json::parse(cdat.begin(), cdat.end());
         path = jf["com.ogi.opencps.project_paths"][opt->projName];
     }
-        //traceBlocks = makeMultiData(piol, path, desc->extents, FileMode::Read);
 
     std::string projVar = "${project}";
     for (auto name : desc->extents)
     {
         std::string ext = getExt(name);
-        std::cout << ext << std::endl;
         findReplace(projVar, path, name);
         auto tempDat = std::make_shared<DataT>(piol, name, FileMode::Read);
         if (ext.find(".tr") != std::string::npos)
@@ -145,6 +139,20 @@ void ReadSeis::Init(const Opt * opt)
         else if (ext.find(".db") != std::string::npos)
             dbBlocks.push_back(tempDat);
     }
+
+    offset.resize(traceBlocks.size());
+    lSz.resize(traceBlocks.size());
+
+    //multiple number of samples per trace by sample length, add length of scalars too.
+    size_t traceLen = desc->bytes * desc->ns + (desc->bytes != scalSz ? scalSz * ((desc->ns + desc->packetSz - 1LU) / desc->packetSz) : 0LU);
+    //Round to the nearest multiple of scalar size (required by seis format).
+    traceLen = ((traceLen + scalSz - 1LU)/scalSz)*scalSz;
+
+    for (size_t i = 0LU; i < lSz.size(); i++)
+        lSz[i] = traceBlocks[i]->getFileSz() / traceLen;
+
+    desc->nt = std::accumulate(lSz.begin(), lSz.end(), 0LU);
+    std::partial_sum(lSz.begin(), lSz.end(), offset.begin());
 }
 
 ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const Opt * opt, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
@@ -153,6 +161,12 @@ ReadSeis::ReadSeis(const Piol piol_, const std::string name_, const Opt * opt, s
 }
 
 ReadSeis::ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : ReadInterface(piol_, name_, data_)
+{
+    Opt opt;
+    Init(&opt);
+}
+
+ReadSeis::ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Read))
 {
     Opt opt;
     Init(&opt);

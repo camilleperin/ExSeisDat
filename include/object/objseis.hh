@@ -71,8 +71,7 @@ class ReadSeis : public ReadInterface
 
     ReadSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_);
 
-    ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Read))
-    { }
+    ReadSeis(const Piol piol_, const std::string name_);
 
     size_t getFileSz(void) const;
 
@@ -91,10 +90,14 @@ class ReadSeis : public ReadInterface
     void readDODF(csize_t * offset, csize_t ns, csize_t sz, uchar * df) const;
 
     protected :
-    std::vector<std::shared_ptr<Data::Interface>> dbBlocks;     //!< Pointer to the Data layer object (polymorphic).
-    std::vector<std::shared_ptr<Data::Interface>> traceBlocks;  //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> dbBlocks;      //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> traceBlocks;   //!< Pointer to the Data layer object (polymorphic).
     std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
     std::shared_ptr<SeisFileHeader> desc;
+
+    std::vector<size_t> offset;
+    std::vector<size_t> lSz;
+    size_t traceLen;
 
     void Init(const Opt *);
 };
@@ -104,9 +107,9 @@ class ReadSeis : public ReadInterface
 class  WriteSeis : public WriteInterface
 {
     protected :
-    std::vector<std::shared_ptr<Data::Interface>> dbBlocks;     //!< Pointer to the Data layer object (polymorphic).
-    std::vector<std::shared_ptr<Data::Interface>> traceBlocks;  //!< Pointer to the Data layer object (polymorphic).
-    std::vector<std::shared_ptr<Data::Interface>> headerBlocks; //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> dbBlocks;      //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> traceBlocks;   //!< Pointer to the Data layer object (polymorphic).
+    std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
     std::shared_ptr<SeisFileHeader> desc;
 
     public :
