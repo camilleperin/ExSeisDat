@@ -4,7 +4,7 @@ TEST_F(ReadSeisObjSpecTest, SeisHORead1)
     make(smallNt, smallNs, 10e-6);
 }
 
-TEST_F(ReadSeisObjSpecTest, SeisHORead2)
+/*TEST_F(ReadSeisObjSpecTest, SeisHORead2)
 {
     make(100, 0, 10e-6);
 }
@@ -22,7 +22,7 @@ TEST_F(ReadSeisObjSpecTest, SeisHORead4)
 TEST_F(ReadSeisObjSpecTest, SeisHORead5)
 {
     make(0, 0, 0);
-}
+}*/
 
 TEST_F(ReadSeisObjSpecTest, SeisReadSingle1)
 {

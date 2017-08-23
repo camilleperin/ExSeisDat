@@ -59,9 +59,11 @@ class BaseObjTest : public Test
     geom_t inc;
     size_t nt;
     size_t ns;
+    bool isMock;
 
     BaseObjTest(void)
     {
+        isMock = false;
         mock = nullptr;
         obj = nullptr;
         opt.initMPI = false;
@@ -71,6 +73,7 @@ class BaseObjTest : public Test
     template <bool Check = true>
     void makeReadReal(std::string name, size_t nt_, size_t ns_, geom_t inc_)
     {
+        isMock = false;
         auto data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Read);
         piol->isErr();
         obj.reset(new R(piol, name, data));
@@ -124,6 +127,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
     template <bool Check = true>
     void makeReadReal(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0, int format_ = 0)
     {
+        isMock = false;
         format = format_;
         BaseObjTest<Obj::ReadSEGY>::makeReadReal<Check>(name, nt_, ns_, inc_);
         if (Check)
@@ -133,6 +137,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
     //Create the read object with a mock data layer
     void make(size_t nt_, size_t ns_, geom_t inc_ = 10e-6, int format_ = 5)
     {
+        isMock = true;
         nt = nt_;
         ns = ns_;
         inc = inc_;
@@ -188,7 +193,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
     void readTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         SCOPED_TRACE("readTest " + std::to_string(size_t(Type)));
-        if (MOCK && mock == nullptr)
+        if (isMock && mock == nullptr)
         {
             std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
             return;
@@ -200,7 +205,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
         std::vector<uchar> trnew(step + 2U*extra);
 
         std::vector<uchar> tr;
-        if (MOCK)
+        if (isMock)
         {
             tr.resize(step);
             for (size_t i = 0U; i < sz; i++)
@@ -255,7 +260,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
     {
         SCOPED_TRACE("readRandomTest " + std::to_string(size_t(Type)));
         size_t sz = offset.size();
-        if (MOCK && mock == nullptr)
+        if (isMock && mock == nullptr)
         {
             std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
             return;
@@ -268,7 +273,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
         std::vector<uchar> trnew(step + 2U*extra);
         std::vector<uchar> tr;
 
-        if (MOCK)
+        if (isMock)
         {
             tr.resize(step);
             for (size_t i = 0U; i < sz; i++)
@@ -332,6 +337,7 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
     template <bool Check = true>
     void makeReadReal(std::string name, size_t nt_ = 0, size_t ns_ = 0, geom_t inc_ = 0)
     {
+        isMock = false;
         BaseObjTest<Obj::ReadSeis>::makeReadReal<Check>(name, nt_, ns_, inc_);
         if (Check)
             readHOPatternTest();
@@ -340,6 +346,7 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
     //Create the read object with a mock data layer
     virtual void make(size_t nt_, size_t ns_, geom_t inc_ = 10e-6)
     {
+        isMock = true;
         nt = nt_;
         ns = ns_;
         inc = inc_;
@@ -352,7 +359,7 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
         nlohmann::json jf =
         {
             {"bytes", 2},
-            {"d1", inc},
+            {"d1", inc * 1000.0},
             {"dims", { "TIME", "TRACE", "GATHER" }},
             {"endianness", "little"},
             {"extents", {
@@ -440,14 +447,15 @@ template <class W, class R>
 class BaseWriteObjTest : public ReadObjTest<R>
 {
     public :
-    using BaseObjTest<Obj::ReadSEGY>::inc;
-    using BaseObjTest<Obj::ReadSEGY>::nt;
-    using BaseObjTest<Obj::ReadSEGY>::ns;
-    using BaseObjTest<Obj::ReadSEGY>::piol;
-    using BaseObjTest<Obj::ReadSEGY>::opt;
-    using BaseObjTest<Obj::ReadSEGY>::mock;
-    using BaseObjTest<Obj::ReadSEGY>::obj;
-
+    using BaseObjTest<R>::inc;
+    using BaseObjTest<R>::nt;
+    using BaseObjTest<R>::ns;
+    using BaseObjTest<R>::piol;
+    using BaseObjTest<R>::opt;
+    using BaseObjTest<R>::mock;
+    using BaseObjTest<R>::obj;
+    using BaseObjTest<R>::isMock;
+    std::string name;
 
 //    Piol piol;
 //    Comm::MPI::Opt opt;
@@ -462,33 +470,33 @@ class BaseWriteObjTest : public ReadObjTest<R>
         piol = std::make_shared<ExSeisPIOL>(opt);*/
     }
 
-    void makeReal(std::string name, size_t ns_, geom_t inc_)
+    void makeReal(std::string name_, size_t ns_, geom_t inc_)
     {
+        isMock = false;
         nt = 0;
         ns = ns_;
         inc = inc_;
+        name = name_;
 
         data = std::make_shared<Data::MPIIO>(piol, name, FileMode::Test);
         piol->isErr();
         wobj.reset(new W(piol, name, data));
         piol->isErr();
-        obj.reset(new R(piol, name, data));
-        piol->isErr();
     }
 
     void makeWrite(size_t nt_, size_t ns_, geom_t inc_)
     {
+        isMock = true;
         nt = nt_;
         ns = ns_;
         inc = inc_;
+        name = notFile;
         mock = std::make_shared<MockData>(piol, notFile);
         piol->isErr();
         wobj.reset(new W(piol, notFile, mock));
         piol->isErr();
     }
 };
-
-
 
 template <class W, class R>
 class WriteObjTest : public BaseWriteObjTest<W, R>
@@ -503,12 +511,14 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
 
     void makeReal(std::string name, size_t ns_ = 200, geom_t inc_ = 10e-6, int format_ = 5)
     {
+        isMock = false;
         format = format_;
         BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeReal(name, ns_, inc_);
     }
 
     void makeWrite(size_t nt_, size_t ns_)
     {
+        isMock = true;
         geom_t inc_ = 10e-6;
         int format_ = 5;
         format = format_;
@@ -518,7 +528,7 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
     template <bool MOCK = true>
     void writeHOPattern(void)
     {
-        if (MOCK)
+        if (isMock)
         {
             if (!mock)
             {
@@ -551,7 +561,7 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
         assert(wobj);
         wobj->writeHO(fo);
 
-        if (!MOCK)
+        if (!isMock)
         {
             obj.reset(new Obj::ReadSEGY(piol, "", data));
             piol->isErr();
@@ -573,7 +583,7 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
         std::vector<uchar> tr;
         std::vector<uchar> trnew(step + 2U*extra);
 
-        if (MOCK)
+        if (isMock)
         {
             tr.resize(step);
             for (size_t i = 0U; i < sz; i++)
@@ -613,13 +623,13 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
             break;
         }
 
-        if (!MOCK)
+        if (!isMock)
         {
             nt = offset + sz;
             obj.reset(new Obj::ReadSEGY(piol, "", data));
             piol->isErr();
 
-            readTest<Type, MOCK>(offset, sz, poff, magic);
+            readTest<Type, false>(offset, sz, poff, magic);
         }
     }
 
@@ -635,7 +645,7 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
         std::vector<uchar> tr;
         std::vector<uchar> trnew(step + 2U*extra);
 
-        if (MOCK)
+        if (isMock)
         {
             tr.resize(step);
             for (size_t i = 0U; i < sz; i++)
@@ -672,25 +682,82 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
                 wobj->writeDO(offset.data(), ns, sz, &trnew[extra]);
             break;
         }
-        if (!MOCK)
+        if (!isMock)
         {
             nt = (offset.size() ? *std::max_element(offset.begin(), offset.end()) + 1LU : 0LU);
             obj.reset(new Obj::ReadSEGY(piol, "", data));
             piol->isErr();
 
-            readRandomTest<Type, MOCK>(offset, magic);
+            readRandomTest<Type, false>(offset, magic);
         }
     }
 };
 
-typedef ReadObjTest<Obj::ReadSEGY> ReadObjSpecTest;
-typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteObjSpecTest;
-typedef ReadObjTest<Obj::ReadSEGY> ReadObjIntegTest;
-typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteObjIntegTest;
 
-typedef ReadObjTest<Obj::ReadSeis> ReadSeisObjSpecTest;
-//typedef WriteSeisObjTest WriteObjSpecTest;
-typedef ReadObjTest<Obj::ReadSeis> ReadSeisObjIntegTest;
-//typedef WriteObjTest WriteObjIntegTest;
+template <>
+class WriteObjTest<Obj::WriteSeis, Obj::ReadSeis> : public BaseWriteObjTest<Obj::WriteSeis, Obj::ReadSeis>
+{
+    public :
+    template <bool MOCK = true>
+    void writeHOPattern(void)
+    {
+        auto d = std::make_shared<Obj::SeisFileHeader>();
+        d->bytes = sizeof(float);
+        d->o1 = 0.0;
+        d->inc = d->d1 = inc * 1000.0;
+        d->ns = d->n1 = ns;
+        d->nt = nt;
+        d->endian = SeisF::Endian::Little;
+        d->headerFile = true;
+        d->packetSz = 20LU;  //Hard-code
+        auto jout = d->set().dump();
+
+        if (isMock)
+        {
+            if (!mock)
+            {
+                std::cerr << "Using Mock when not initialised: LOC: " << __LINE__ << std::endl;
+                return;
+            }
+
+            EXPECT_CALL(*mock, write(0LU, jout.size(), _)).Times(Exactly(1)).WillOnce(check2(jout.data(), jout.size()));
+        }
+
+        assert(wobj);
+        wobj->writeHO(d);
+
+        if (!isMock)
+        {
+            obj.reset(new Obj::ReadSeis(piol, name, data));
+            piol->isErr();
+
+            readHOPatternTest("");
+        }
+    }
+
+    template <Block Type, bool MOCK = true>
+    void writeTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
+    {
+        ASSERT_EQ(0, 1);
+    }
+
+    template <Block Type, bool MOCK = true>
+    void writeRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
+    {
+        ASSERT_EQ(0, 1);
+    }
+};
+
+
+
+typedef ReadObjTest<Obj::ReadSEGY>                  ReadSEGYObjSpecTest;
+typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteSEGYObjSpecTest;
+typedef ReadObjTest<Obj::ReadSEGY>                  ReadSEGYObjIntegTest;
+typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteSEGYObjIntegTest;
+
+typedef ReadObjTest<Obj::ReadSeis>                  ReadSeisObjSpecTest;
+typedef WriteObjTest<Obj::WriteSeis, Obj::ReadSeis> WriteSeisObjSpecTest;
+typedef ReadObjTest<Obj::ReadSeis>                  ReadSeisObjIntegTest;
+typedef WriteObjTest<Obj::WriteSeis, Obj::ReadSeis> WriteSeisObjIntegTest;
 
 

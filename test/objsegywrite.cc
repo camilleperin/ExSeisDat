@@ -1,29 +1,29 @@
 #include "objtest.hh"
-TEST_F(WriteObjSpecTest, SEGYHOWrite1)
+TEST_F(WriteSEGYObjSpecTest, SEGYHOWrite1)
 {
     makeWrite(10000, 2000);
     writeHOPattern();
 }
 
-TEST_F(WriteObjSpecTest, SEGYHOWrite2)
+TEST_F(WriteSEGYObjSpecTest, SEGYHOWrite2)
 {
     makeWrite(10000, 0);
     writeHOPattern();
 }
 
-TEST_F(WriteObjSpecTest, SEGYHOWrite3)
+TEST_F(WriteSEGYObjSpecTest, SEGYHOWrite3)
 {
     makeWrite(0, 2000);
     writeHOPattern();
 }
 
-TEST_F(WriteObjSpecTest, SEGYHOWrite4)
+TEST_F(WriteSEGYObjSpecTest, SEGYHOWrite4)
 {
     makeWrite(0, 0);
     writeHOPattern();
 }
 
-TEST_F(WriteObjSpecTest, SEGYWriteSingle1)
+TEST_F(WriteSEGYObjSpecTest, SEGYWriteSingle1)
 {
     makeWrite(11, 200);
     writeTest<Block::DOMD>(10, 1, 13, 13);
@@ -31,7 +31,7 @@ TEST_F(WriteObjSpecTest, SEGYWriteSingle1)
     writeTest<Block::DO>(10, 1, 13, 13);
 }
 
-TEST_F(WriteObjSpecTest, SEGYWriteSingle2)
+TEST_F(WriteSEGYObjSpecTest, SEGYWriteSingle2)
 {
     makeWrite(11, 200);
     writeTest<Block::DOMD>(10, 1, 13, 117);
@@ -39,7 +39,7 @@ TEST_F(WriteObjSpecTest, SEGYWriteSingle2)
     writeTest<Block::DO>(10, 1, 13, 117);
 }
 
-TEST_F(WriteObjSpecTest, SEGYWriteZeroNt)
+TEST_F(WriteSEGYObjSpecTest, SEGYWriteZeroNt)
 {
     makeWrite(10, 2000);
     writeTest<Block::DOMD>(10U, 0U);
@@ -47,7 +47,7 @@ TEST_F(WriteObjSpecTest, SEGYWriteZeroNt)
     writeTest<Block::DO>(10U, 0U);
 }
 
-TEST_F(WriteObjSpecTest, SEGYWriteZeroNs)
+TEST_F(WriteSEGYObjSpecTest, SEGYWriteZeroNs)
 {
     makeWrite(110, 0);
     writeTest<Block::DOMD>(10U, 100U);
@@ -55,7 +55,7 @@ TEST_F(WriteObjSpecTest, SEGYWriteZeroNs)
     writeTest<Block::DO>(10U, 100U);
 }
 
-TEST_F(WriteObjSpecTest, SEGYWrite)
+TEST_F(WriteSEGYObjSpecTest, SEGYWrite)
 {
     makeWrite(110, 2000);
     writeTest<Block::DOMD>(10U, 100U);
@@ -63,7 +63,7 @@ TEST_F(WriteObjSpecTest, SEGYWrite)
     writeTest<Block::DO>(10U, 100U);
 }
 
-TEST_F(WriteObjSpecTest, FarmSEGYBigWrite)
+TEST_F(WriteSEGYObjSpecTest, FarmSEGYBigWrite)
 {
     makeWrite(300500, 5000);
     writeTest<Block::DOMD>(10U, 300000);
@@ -73,7 +73,7 @@ TEST_F(WriteObjSpecTest, FarmSEGYBigWrite)
 
 //random read
 
-TEST_F(WriteObjSpecTest, SEGYRandomWriteSingle1)
+TEST_F(WriteSEGYObjSpecTest, SEGYRandomWriteSingle1)
 {
     auto vec = getRandomVec(1U, 1337);
     makeWrite(*std::max_element(vec.begin(), vec.end()) + 1LU, 200);
@@ -82,7 +82,7 @@ TEST_F(WriteObjSpecTest, SEGYRandomWriteSingle1)
     writeRandomTest<Block::DO>(vec, 13);
 }
 
-TEST_F(WriteObjSpecTest, SEGYRandomWriteSingle2)
+TEST_F(WriteSEGYObjSpecTest, SEGYRandomWriteSingle2)
 {
     auto vec = getRandomVec(1U, 1337);
     makeWrite(*std::max_element(vec.begin(), vec.end()) + 1LU, 200);
@@ -91,7 +91,7 @@ TEST_F(WriteObjSpecTest, SEGYRandomWriteSingle2)
     writeRandomTest<Block::DO>(vec, 117);
 }
 
-TEST_F(WriteObjSpecTest, SEGYRandomWriteZeroNt)
+TEST_F(WriteSEGYObjSpecTest, SEGYRandomWriteZeroNt)
 {
     auto vec = getRandomVec(0U, 1337);
     makeWrite(0, 2000);
@@ -100,7 +100,7 @@ TEST_F(WriteObjSpecTest, SEGYRandomWriteZeroNt)
     writeRandomTest<Block::DO>(vec);
 }
 
-TEST_F(WriteObjSpecTest, SEGYRandomWriteZeroNs)
+TEST_F(WriteSEGYObjSpecTest, SEGYRandomWriteZeroNs)
 {
     auto vec = getRandomVec(100U, 1337);
     makeWrite(*std::max_element(vec.begin(), vec.end()) + 1LU, 0);
@@ -109,7 +109,7 @@ TEST_F(WriteObjSpecTest, SEGYRandomWriteZeroNs)
     writeRandomTest<Block::DO>(vec);
 }
 
-TEST_F(WriteObjSpecTest, SEGYRandomWrite)
+TEST_F(WriteSEGYObjSpecTest, SEGYRandomWrite)
 {
     auto vec = getRandomVec(100U, 1337);
     makeWrite(*std::max_element(vec.begin(), vec.end()) + 1LU, 2000);
@@ -118,7 +118,7 @@ TEST_F(WriteObjSpecTest, SEGYRandomWrite)
     writeRandomTest<Block::DO>(vec);
 }
 
-TEST_F(WriteObjSpecTest, FarmSEGYRandomBigWrite)
+TEST_F(WriteSEGYObjSpecTest, FarmSEGYRandomBigWrite)
 {
     auto vec = getRandomVec(300000U, 1337);
     makeWrite(*std::max_element(vec.begin(), vec.end()) + 1LU, 5000);

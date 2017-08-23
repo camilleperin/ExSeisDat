@@ -100,17 +100,13 @@ std::string getExt(const std::string & target)
     return removeBeforeLastChar('.', target);
 }
 
-void ReadSeis::Init(const Opt * opt)
+template <class DataT = ReadSeis::DataT>
+std::string getPath(Piol piol, std::string name, std::string projName)
 {
-    std::vector<uchar> dat(data->getFileSz());
-    data->read(0LU, dat.size(), dat.data());
-    desc = std::make_shared<SeisFileHeader>(dat);
-
-    //Create a path to the appropriate datadir folder
     std::string path;
-    if (opt->projName ==  "")
+    if (projName ==  "")
     {
-        auto * cpath = realpath(name.c_str(), NULL);
+        char * cpath = realpath(name.c_str(), NULL);
         path.assign(cpath);
         free(cpath);
         path = getDirName(path);
@@ -123,8 +119,19 @@ void ReadSeis::Init(const Opt * opt)
         std::vector<uchar> cdat(conf->getFileSz());
         conf->read(0LU, cdat.size(), cdat.data());
         nlohmann::json jf = nlohmann::json::parse(cdat.begin(), cdat.end());
-        path = jf["com.ogi.opencps.project_paths"][opt->projName];
+        path = jf["com.ogi.opencps.project_paths"][projName];
     }
+    return path;
+}
+
+void ReadSeis::Init(const Opt * opt)
+{
+    std::vector<uchar> dat(data->getFileSz());
+    data->read(0LU, dat.size(), dat.data());
+    desc = std::make_shared<SeisFileHeader>(dat);
+
+    //Create a path to the appropriate datadir folder
+    std::string path = getPath(piol, name, opt->projName);
 
     std::string projVar = "${project}";
     for (auto name : desc->extents)
@@ -172,6 +179,29 @@ ReadSeis::ReadSeis(const Piol piol_, const std::string name_) : ReadInterface(pi
     Init(&opt);
 }
 
+WriteSeis::WriteSeis(const Piol piol_, const std::string name_, const Opt * opt_, std::shared_ptr<Data::Interface> data_ ) : WriteInterface(piol_, name_, data_)
+{
+    desc = std::make_shared<SeisFileHeader>();
+    desc->inc = 0.0;
+    desc->nt = desc->ns = 0LU;
+}
+
+WriteSeis::WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : WriteInterface(piol_, name_, data_)
+{
+    desc = std::make_shared<SeisFileHeader>();
+    desc->inc = 0.0;
+    desc->nt = desc->ns = 0LU;
+}
+
+WriteSeis::WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Write))
+{
+    desc = std::make_shared<SeisFileHeader>();
+    desc->inc = 0.0;
+    desc->nt = desc->ns = 0LU;
+}
+
+
+
 WriteSeis::~WriteSeis(void)
 {
     writeHO(desc);
@@ -195,7 +225,25 @@ std::shared_ptr<FileMetadata> ReadSeis::readHO(void) const
 
 void WriteSeis::writeHO(const std::shared_ptr<FileMetadata> ho) const
 {
-    auto jout = desc->set().dump();
+    assert(ho);
+    auto d = std::dynamic_pointer_cast<SeisFileHeader>(ho);
+    if (!d)
+    {
+        d = std::make_shared<SeisFileHeader>();
+        d->bytes = sizeof(float);
+        d->o1 = 0.0;
+        d->d1 = ho->inc * 1000.0;
+        d->n1 = ho->ns;
+        d->endian = SeisF::Endian::Little;
+        d->headerFile = true;
+        d->extents.insert(d->extents.end(), db.begin(), db.end());
+        d->extents.insert(d->extents.end(), tr.begin(), tr.end());
+        d->extents.insert(d->extents.end(), hd.begin(), hd.end());
+        d->packetSz = 20LU;  //Hard-code
+    }
+
+    auto jout = d->set().dump();
+    std::cout << std::setw(4) << jout << std::endl;
     data->write(0LU, jout.size(), reinterpret_cast<const uchar *>(jout.data()));
 }
 

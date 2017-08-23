@@ -1,20 +1,20 @@
 #include "objtest.hh"
-TEST_F(ReadObjIntegTest, SEGYHORead1)
+TEST_F(ReadSEGYObjIntegTest, SEGYHORead1)
 {
     makeReadReal(smallSEGYFile, 400, 261, 20e-6, 5);
 }
 
-TEST_F(ReadObjIntegTest, SEGYHORead2)
+TEST_F(ReadSEGYObjIntegTest, SEGYHORead2)
 {
     makeReadReal(bigTraceSEGYFile, 40000, 32000, 20e-6, 5);
 }
 
-TEST_F(ReadObjIntegTest, SEGYHORead3)
+TEST_F(ReadSEGYObjIntegTest, SEGYHORead3)
 {
     makeReadReal(largeSEGYFile, 2000000U, 1000U, 20e-6, 5);
 }
 
-TEST_F(ReadObjIntegTest, SEGYReadSingle1)
+TEST_F(ReadSEGYObjIntegTest, SEGYReadSingle1)
 {
     makeReadReal<false>(plargeFile);
     ns = 200;
@@ -23,7 +23,7 @@ TEST_F(ReadObjIntegTest, SEGYReadSingle1)
     readTest<Block::DO, false>(10U, 1U, 0, 13);
 }
 
-TEST_F(ReadObjIntegTest, SEGYReadSingle2)
+TEST_F(ReadSEGYObjIntegTest, SEGYReadSingle2)
 {
     makeReadReal<false>(plargeFile);
     ns = 200;
@@ -32,7 +32,7 @@ TEST_F(ReadObjIntegTest, SEGYReadSingle2)
     readTest<Block::DO, false>(10U, 1U, 0, 117);
 }
 
-TEST_F(ReadObjIntegTest, SEGYReadZeroNt)
+TEST_F(ReadSEGYObjIntegTest, SEGYReadZeroNt)
 {
     makeReadReal<false>(plargeFile);
     ns = 2000;
@@ -41,7 +41,7 @@ TEST_F(ReadObjIntegTest, SEGYReadZeroNt)
     readTest<Block::DO, false>(10U, 0U);
 }
 
-TEST_F(ReadObjIntegTest, SEGYReadZeroNs)
+TEST_F(ReadSEGYObjIntegTest, SEGYReadZeroNs)
 {
     makeReadReal<false>(plargeFile);
     ns = 0;
@@ -50,7 +50,7 @@ TEST_F(ReadObjIntegTest, SEGYReadZeroNs)
     readTest<Block::DO, false>(10U, 100U);
 }
 
-TEST_F(ReadObjIntegTest, SEGYRead)
+TEST_F(ReadSEGYObjIntegTest, SEGYRead)
 {
     makeReadReal<false>(plargeFile);
     ns = 2000;
@@ -59,7 +59,7 @@ TEST_F(ReadObjIntegTest, SEGYRead)
     readTest<Block::DO, false>(10U, 100U);
 }
 
-TEST_F(ReadObjIntegTest, FarmSEGYBigRead)
+TEST_F(ReadSEGYObjIntegTest, FarmSEGYBigRead)
 {
     makeReadReal<false>(plargeFile);
     ns = 2000;
@@ -71,7 +71,7 @@ TEST_F(ReadObjIntegTest, FarmSEGYBigRead)
 }
 
 //Random reads
-TEST_F(ReadObjIntegTest, SEGYRandomReadSingle1)
+TEST_F(ReadSEGYObjIntegTest, SEGYRandomReadSingle1)
 {
     makeReadReal<false>(plargeFile);
     auto vec = getRandomVec(1U, 1337);
@@ -81,7 +81,7 @@ TEST_F(ReadObjIntegTest, SEGYRandomReadSingle1)
     readRandomTest<Block::DO, false>(vec, 117);
 }
 
-TEST_F(ReadObjIntegTest, SEGYRandomReadSingle2)
+TEST_F(ReadSEGYObjIntegTest, SEGYRandomReadSingle2)
 {
     makeReadReal<false>(plargeFile);
     auto vec = getRandomVec(1U, 1337);
@@ -91,7 +91,7 @@ TEST_F(ReadObjIntegTest, SEGYRandomReadSingle2)
     readRandomTest<Block::DO, false>(vec, 13);
 }
 
-TEST_F(ReadObjIntegTest, SEGYRandomReadZeroNt)
+TEST_F(ReadSEGYObjIntegTest, SEGYRandomReadZeroNt)
 {
     makeReadReal<false>(plargeFile);
     auto vec = getRandomVec(0, 1337);
@@ -101,7 +101,7 @@ TEST_F(ReadObjIntegTest, SEGYRandomReadZeroNt)
     readRandomTest<Block::DO, false>(vec);
 }
 
-TEST_F(ReadObjIntegTest, SEGYRandomReadZeroNs)
+TEST_F(ReadSEGYObjIntegTest, SEGYRandomReadZeroNs)
 {
     makeReadReal<false>(plargeFile);
     auto vec = getRandomVec(100U, 1337);
@@ -111,7 +111,7 @@ TEST_F(ReadObjIntegTest, SEGYRandomReadZeroNs)
     readRandomTest<Block::DO, false>(vec);
 }
 
-TEST_F(ReadObjIntegTest, SEGYRandomRead)
+TEST_F(ReadSEGYObjIntegTest, SEGYRandomRead)
 {
     makeReadReal<false>(plargeFile);
     auto vec = getRandomVec(100U, 1337);
@@ -121,7 +121,7 @@ TEST_F(ReadObjIntegTest, SEGYRandomRead)
     readRandomTest<Block::DO, false>(vec);
 }
 
-TEST_F(ReadObjIntegTest, FarmSEGYRandomBigRead)
+TEST_F(ReadSEGYObjIntegTest, FarmSEGYRandomBigRead)
 {
     makeReadReal<false>(plargeFile);
     auto vec = getRandomVec(300000, 1337);

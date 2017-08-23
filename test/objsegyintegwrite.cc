@@ -1,17 +1,17 @@
 #include "objtest.hh"
-TEST_F(WriteObjIntegTest, SEGYHOWrite1)
+TEST_F(WriteSEGYObjIntegTest, SEGYHOWrite1)
 {
     makeReal(tempFile);
     writeHOPattern<false>();
 }
 
-TEST_F(WriteObjIntegTest, SEGYHOWrite2)
+TEST_F(WriteSEGYObjIntegTest, SEGYHOWrite2)
 {
     makeReal(tempFile, 0);
     writeHOPattern<false>();
 }
 
-TEST_F(WriteObjIntegTest, SEGYWriteSingle1)
+TEST_F(WriteSEGYObjIntegTest, SEGYWriteSingle1)
 {
     makeReal(tempFile, 200);
     writeTest<Block::DOMD, false>(10U, 1U, 0, 117);
@@ -19,7 +19,7 @@ TEST_F(WriteObjIntegTest, SEGYWriteSingle1)
     writeTest<Block::DO, false>(10U, 1U, 0, 117);
 }
 
-TEST_F(WriteObjIntegTest, SEGYWriteSingle2)
+TEST_F(WriteSEGYObjIntegTest, SEGYWriteSingle2)
 {
     makeReal(tempFile, 200);
     writeTest<Block::DOMD, false>(10U, 1U, 0, 13);
@@ -27,7 +27,7 @@ TEST_F(WriteObjIntegTest, SEGYWriteSingle2)
     writeTest<Block::DO, false>(10U, 1U, 0, 13);
 }
 
-TEST_F(WriteObjIntegTest, SEGYWriteZeroNt)
+TEST_F(WriteSEGYObjIntegTest, SEGYWriteZeroNt)
 {
     makeReal(tempFile, 200);
     writeTest<Block::DOMD, false>(10U, 2000);
@@ -35,7 +35,7 @@ TEST_F(WriteObjIntegTest, SEGYWriteZeroNt)
     writeTest<Block::DO, false>(10U, 200);
 }
 
-TEST_F(WriteObjIntegTest, SEGYWriteZeroNs)
+TEST_F(WriteSEGYObjIntegTest, SEGYWriteZeroNs)
 {
     makeReal(tempFile, 0);
     writeTest<Block::DOMD, false>(10U, 100U);
@@ -43,7 +43,7 @@ TEST_F(WriteObjIntegTest, SEGYWriteZeroNs)
     writeTest<Block::DO, false>(10U, 100U);
 }
 
-TEST_F(WriteObjIntegTest, SEGYWrite)
+TEST_F(WriteSEGYObjIntegTest, SEGYWrite)
 {
     makeReal(tempFile, 2000);
     writeTest<Block::DOMD, false>(10U, 100U);
@@ -51,7 +51,7 @@ TEST_F(WriteObjIntegTest, SEGYWrite)
     writeTest<Block::DO, false>(10U, 100U);
 }
 
-TEST_F(WriteObjIntegTest, FarmSEGYBigWrite)
+TEST_F(WriteSEGYObjIntegTest, FarmSEGYBigWrite)
 {
     makeReal(tempFile, 5000);
     writeTest<Block::DOMD, false>(10U, 300000);
@@ -60,7 +60,7 @@ TEST_F(WriteObjIntegTest, FarmSEGYBigWrite)
 }
 
 //random write
-TEST_F(WriteObjIntegTest, SEGYRandomWriteSingle1)
+TEST_F(WriteSEGYObjIntegTest, SEGYRandomWriteSingle1)
 {
     makeReal(tempFile, 200);
     auto vec = getRandomVec(1U, 1337);
@@ -69,7 +69,7 @@ TEST_F(WriteObjIntegTest, SEGYRandomWriteSingle1)
     writeRandomTest<Block::DO, false>(vec, 117);
 }
 
-TEST_F(WriteObjIntegTest, SEGYRandomWriteSingle2)
+TEST_F(WriteSEGYObjIntegTest, SEGYRandomWriteSingle2)
 {
     makeReal(tempFile, 200);
     auto vec = getRandomVec(1U, 1337);
@@ -78,7 +78,7 @@ TEST_F(WriteObjIntegTest, SEGYRandomWriteSingle2)
     writeRandomTest<Block::DO, false>(vec, 13);
 }
 
-TEST_F(WriteObjIntegTest, SEGYRandomWriteZeroNt)
+TEST_F(WriteSEGYObjIntegTest, SEGYRandomWriteZeroNt)
 {
     makeReal(tempFile, 2000);
     auto vec = getRandomVec(0U, 1337);
@@ -87,7 +87,7 @@ TEST_F(WriteObjIntegTest, SEGYRandomWriteZeroNt)
     writeRandomTest<Block::DO, false>(vec);
 }
 
-TEST_F(WriteObjIntegTest, SEGYRandomWriteZeroNs)
+TEST_F(WriteSEGYObjIntegTest, SEGYRandomWriteZeroNs)
 {
     makeReal(tempFile, 0);
     auto vec = getRandomVec(100U, 1337);
@@ -96,7 +96,7 @@ TEST_F(WriteObjIntegTest, SEGYRandomWriteZeroNs)
     writeRandomTest<Block::DO, false>(vec);
 }
 
-TEST_F(WriteObjIntegTest, SEGYRandomWrite)
+TEST_F(WriteSEGYObjIntegTest, SEGYRandomWrite)
 {
     makeReal(tempFile, 2000);
     auto vec = getRandomVec(100U, 1337);
@@ -105,7 +105,7 @@ TEST_F(WriteObjIntegTest, SEGYRandomWrite)
     writeRandomTest<Block::DO, false>(vec);
 }
 
-TEST_F(WriteObjIntegTest, FarmSEGYRandomBigWrite)
+TEST_F(WriteSEGYObjIntegTest, FarmSEGYRandomBigWrite)
 {
     makeReal(tempFile, 5000);
     auto vec = getRandomVec(300000U, 1337);

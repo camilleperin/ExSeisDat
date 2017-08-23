@@ -23,7 +23,6 @@ struct SeisFileHeader : public FileMetadata
     size_t n1;
     SeisF::Endian endian;
     bool headerFile;
-    std::vector<std::string> headers;
     std::vector<std::string> extents;
     size_t packetSz;
 
@@ -34,7 +33,7 @@ struct SeisFileHeader : public FileMetadata
     bool operator==(SeisFileHeader & other)
     {
         return bytes == other.bytes && o1 == other.o1 && d1 == other.d1 && n1 == other.n1 &&
-               endian == other.endian && headerFile == other.headerFile && headers == other.headers &&
+               endian == other.endian && headerFile == other.headerFile &&
                extents == other.extents && packetSz == other.packetSz && FileMetadata::operator==(other);
     }
 };
@@ -45,6 +44,7 @@ class ReadSeis : public ReadInterface
 {
     public :
     typedef Data::MPIIO DataT;
+
     /*! \brief The ReadSeis options structure. Currently empty.
     */
     struct Opt
@@ -107,11 +107,14 @@ class ReadSeis : public ReadInterface
 class  WriteSeis : public WriteInterface
 {
     protected :
+
+    std::vector<std::string> db;
+    std::vector<std::string> tr;
+    std::vector<std::string> hd;
     std::vector<std::shared_ptr<Data::Interface>> dbBlocks;      //!< Pointer to the Data layer object (polymorphic).
     std::vector<std::shared_ptr<Data::Interface>> traceBlocks;   //!< Pointer to the Data layer object (polymorphic).
     std::vector<std::shared_ptr<Data::Interface>> headerBlocks;  //!< Pointer to the Data layer object (polymorphic).
     std::shared_ptr<SeisFileHeader> desc;
-
     public :
     typedef Data::MPIIO DataT;
     /*! \brief The WriteSeis options structure. Currently empty.
@@ -133,14 +136,11 @@ class  WriteSeis : public WriteInterface
      *  \param[in] data_ Pointer to the Data layer object (polymorphic).
      *  \param[in] mode  The file mode
      */
-    WriteSeis(const Piol piol_, const std::string name_, const Opt * opt_, std::shared_ptr<Data::Interface> data_ ) : WriteInterface(piol_, name_, data_)
-    {}
+    WriteSeis(const Piol piol_, const std::string name_, const Opt * opt_, std::shared_ptr<Data::Interface> data_ );
 
-    WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_) : WriteInterface(piol_, name_, data_)
-    {}
+    WriteSeis(const Piol piol_, const std::string name_, std::shared_ptr<Data::Interface> data_);
 
-    WriteSeis(const Piol piol_, const std::string name_) : WriteInterface(piol_, name_, std::make_shared<DataT>(piol_, name_, FileMode::Write))
-    {}
+    WriteSeis(const Piol piol_, const std::string name_);
 
     ~WriteSeis(void);
 
