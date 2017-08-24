@@ -16,6 +16,16 @@ namespace PIOL { namespace Data {
 template <typename U>
 using MFp = std::function<int(MPI_File, MPI_Offset, void *, int, MPI_Datatype, U *)>;
 
+
+class MPIWait : public AsyncDataWait
+{
+    public :
+    void wait(void)
+    {
+#warning to be implemented
+    }
+};
+
 /*! \brief The MPI-IO Data class.
  */
 class MPIIO : public Interface
@@ -123,6 +133,8 @@ class MPIIO : public Interface
     void write(csize_t offset, csize_t sz, const uchar * d) const;
 
     void write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const;
+
+    std::unique_ptr<AsyncDataWait> aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const;
 };
 }}
 #endif

@@ -11,6 +11,12 @@
 #define PIOLDATA_INCLUDE_GUARD
 #include "global.hh"
 namespace PIOL { namespace Data {
+
+struct AsyncDataWait
+{
+    virtual void wait(void) = 0;
+};
+
 /*! \brief The Data layer interface. Specific data I/O implementations
  *  work off this base class.
  */
@@ -91,6 +97,8 @@ class Interface
      *  \param[in] d      The array to read data output from
      */
     virtual void write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const = 0;
+
+    virtual std::unique_ptr<AsyncDataWait> aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const = 0;
 };
 }}
 #endif

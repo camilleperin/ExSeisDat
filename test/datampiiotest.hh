@@ -107,16 +107,34 @@ class MPIIOTest : public Test
         readBigBlocks<block>(nt, ns, offset);
     }
 
-    template <bool block>
+    template <bool block, bool async = false>
     void readSmallBlocks(size_t nt, csize_t ns, csize_t offset = 0)
     {
         size_t step = (block ? SEGSz::getMDSz() : SEGSz::getDOSz(ns));
         std::vector<uchar> tr(step*nt);
 
-        if (block)
-            data->read(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getMDSz(), SEGSz::getDOSz(ns), nt, tr.data());
+        if (!async)
+        {
+            if (block)
+                data->read(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getMDSz(), SEGSz::getDOSz(ns), nt, tr.data());
+            else
+                data->read(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getDOSz(ns)*nt, tr.data());
+        }
         else
-            data->read(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getDOSz(ns)*nt, tr.data());
+        {
+            if (block)
+            {
+                auto ar = data->aread(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getMDSz(), SEGSz::getDOSz(ns), nt, tr.data());
+                ar->wait();
+            }
+            else
+            {
+//TODO: Implement!
+                ASSERT_EQ(1, 0);
+           //     auto ar = data->aread(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getDOSz(ns)*nt, tr.data());
+           //     ar->wait();
+            }
+        }
 
         nt = modifyNt(data->getFileSz(), offset, nt, ns);
         for (size_t i = 0; i < nt; i++)
@@ -127,16 +145,33 @@ class MPIIOTest : public Test
         }
     }
 
-    template <bool block>
+    template <bool block, bool async = false>
     void readBigBlocks(size_t nt, csize_t ns, csize_t offset = 0)
     {
         size_t step = (block ? SEGSz::getDFSz(ns) : SEGSz::getDOSz(ns));
         std::vector<uchar> tr(step*nt);
 
-        if (block)
-            data->read(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDFSz(ns), SEGSz::getDOSz(ns), nt, tr.data());
+        if (!async)
+        {
+            if (block)
+                data->read(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDFSz(ns), SEGSz::getDOSz(ns), nt, tr.data());
+            else
+                data->read(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDOSz(ns)*nt, tr.data());
+        }
         else
-            data->read(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDOSz(ns)*nt, tr.data());
+        {
+            if (block)
+            {
+                auto ar = data->aread(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDFSz(ns), SEGSz::getDOSz(ns), nt, tr.data());
+;
+                ar->wait();
+            }
+            else
+            {
+//TODO: Implement!
+                ASSERT_EQ(1, 0);
+            }
+        }
 
         nt = modifyNt(data->getFileSz(), offset, nt, ns);
         for (size_t i = 0; i < nt; i++)

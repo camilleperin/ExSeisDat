@@ -286,6 +286,82 @@ TEST_F(MPIIOTest, FarmReadBlocksMLL)
     readBigBlocks<true>(nt, ns);
     piol->isErr();
 }
+///////Async Blocks////////
+
+TEST_F(MPIIOTest, AsyncReadBlocksZero)
+{
+    makeMPIIO(smallSEGYFile);
+    csize_t nt = 0;
+    csize_t ns = 0;
+    readSmallBlocks<true, true>(nt, ns);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, AsyncReadBlocksSSS)
+{
+    makeMPIIO(smallSEGYFile);
+    csize_t nt = 400;
+    csize_t ns = 261;
+    readSmallBlocks<true, true>(nt, ns);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, AsyncReadBlocksEnd)
+{
+    makeMPIIO(smallSEGYFile);
+    size_t nt = 400;
+    csize_t ns = 261;
+
+    //Read extra
+    nt *= 1024;
+    readSmallBlocks<true, true>(nt, ns, 200);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, AsyncReadBlocksSLS)
+{
+    makeMPIIO(bigTraceSEGYFile);
+    csize_t nt = 40U;
+    csize_t ns = 32000U;
+    readSmallBlocks<true, true>(nt, ns, 1000U);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, FarmAsyncReadBlocksSLM)
+{
+    makeMPIIO(bigTraceSEGYFile);
+    csize_t nt = 40000U;
+    csize_t ns = 32000U;
+    readSmallBlocks<true, true>(nt, ns);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, FarmAsyncReadBlocksSLL)
+{
+    makeMPIIO(largeSEGYFile);
+    csize_t nt = 2000000U;
+    csize_t ns = 1000U;
+    readSmallBlocks<true, true>(nt, ns);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, FarmAsyncReadBlocksLLM)
+{
+    makeMPIIO(bigTraceSEGYFile);
+    csize_t nt = 40000U;
+    csize_t ns = 32000U;
+    readBigBlocks<true, true>(nt, ns);
+    piol->isErr();
+}
+
+TEST_F(MPIIOTest, FarmAsyncReadBlocksMLL)
+{
+    makeMPIIO(largeSEGYFile);
+    csize_t nt = 2000000U;
+    csize_t ns = 1000U;
+    readBigBlocks<true, true>(nt, ns);
+    piol->isErr();
+}
 
 ///////Lists//////////
 csize_t largens = 1000U;

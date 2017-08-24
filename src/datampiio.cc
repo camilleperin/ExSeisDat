@@ -10,6 +10,9 @@
 #include <algorithm>
 #include "data/datampiio.hh"
 #include "share/mpi.hh"
+#warning temp
+#include <iostream>
+
 namespace PIOL { namespace Data {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////       Non-Class       ///////////////////////////////////////////////
@@ -302,6 +305,13 @@ void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d
 #pragma GCC diagnostic pop
 
     contigIO(viewIO, offset, nb, d, "Failed to read data over the integer limit.", bsz, osz);
+}
+
+
+std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
+{
+    std::cerr << "Not implemented!" << std::endl;
+    return std::make_unique<MPIWait>();
 }
 
 
