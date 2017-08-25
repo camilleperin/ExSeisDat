@@ -10,19 +10,31 @@
 #define PIOLDATAMPIIO_INCLUDE_GUARD
 #include "global.hh"
 #include "data/data.hh"
+
+#warning incl
+#include <iostream>
 namespace PIOL { namespace Data {
 /*! \brief This templated function pointer type allows us to refer to MPI functions more compactly.
  */
 template <typename U>
 using MFp = std::function<int(MPI_File, MPI_Offset, void *, int, MPI_Datatype, U *)>;
 
+typedef std::function<void(MPI_Offset, uchar *, int, MPI_Status * stat)> AFp;
 
 class MPIWait : public AsyncDataWait
 {
+    std::vector<MPI_Request> reqvec;
     public :
+    void add(MPI_Request req)
+    {
+        reqvec.push_back(req);
+    }
+
     void wait(void)
     {
-#warning to be implemented
+        std::vector<MPI_Status> status(reqvec.size());
+        int err = MPI_Waitall(reqvec.size(), reqvec.data(), MPI_STATUSES_IGNORE);
+#warning checks err
     }
 };
 
@@ -88,6 +100,8 @@ class MPIIO : public Interface
      */
     void contigIO(const MFp<MPI_Status> fn, csize_t offset, csize_t sz, uchar * d, std::string msg,
                                                             csize_t bsz = 1U, csize_t osz = 1U) const;
+
+    void blockIO(const AFp fn, csize_t nb, uchar * d, size_t osz, size_t bsz) const;
 
     /*! \brief Perform I/O on blocks of data where each block starts at the location specified by an array of offsets.
      *  \param[in] fn The MPI-IO style function to perform the I/O with

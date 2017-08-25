@@ -292,6 +292,9 @@ void MPIIO::readv(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * 
     MPI_Type_free(&view);
 }
 
+
+#warning temporary for testing
+/*
 void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
 {
 #pragma GCC diagnostic push
@@ -305,15 +308,7 @@ void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d
 #pragma GCC diagnostic pop
 
     contigIO(viewIO, offset, nb, d, "Failed to read data over the integer limit.", bsz, osz);
-}
-
-
-std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
-{
-    std::cerr << "Not implemented!" << std::endl;
-    return std::make_unique<MPIWait>();
-}
-
+}*/
 
 void MPIIO::contigIO(const MFp<MPI_Status> fn, csize_t offset, csize_t sz,
                      uchar * d, std::string msg, csize_t bsz, csize_t osz) const
@@ -420,5 +415,94 @@ void MPIIO::write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uc
 #pragma GCC diagnostic pop
 
     contigIO(viewIO, offset, nb, const_cast<uchar *>(d), "Failed to read data over the integer limit.", bsz, osz);
+}
+
+/////////////////Async////////////
+/*MPI_Request MPIIO::areadv(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const MPI_Datatype da, uchar * buf) const
+{
+    if (nb*osz > size_t(maxSize))
+    {
+        std::string msg = "(nb, bsz, osz) = (" + std::to_string(nb) + ", "
+                                               + std::to_string(bsz) + ", "
+                                               + std::to_string(osz) + ")";
+        log->record(name, Log::Layer::Data, Log::Status::Error, "Read overflows MPI settings: " + msg, Log::Verb::None);
+    }
+
+    MPI_Request req;
+    err = MPI_File_iread_at_all(file, offset, buf, nb, da, &req);
+
+    printErr(log, name, Log::Layer::Data, err, NULL, "Collective read failed.");
+
+    return req;
+}*/
+
+void MPIIO::blockIO(const AFp fn, csize_t nb, uchar * d, size_t osz, size_t bsz) const
+{
+    MPI_Status stat;
+    size_t max = maxSize / osz;
+    size_t remCall = 0;
+    auto vec = piol->comm->gather<size_t>(nb);
+    remCall = *std::max_element(vec.begin(), vec.end());
+    remCall = remCall/max + (remCall % max > 0) - nb/max - (nb % max > 0);
+
+    for (size_t i = 0; i < nb; i += max)
+    {
+        size_t chunk = std::min(nb - i, max);
+        fn(i, &d[bsz*i], chunk, &stat);
+    }
+
+    for (size_t i = 0; i < remCall; i++)
+        fn(0, NULL, 0, &stat);
+}
+
+std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
+{
+    auto mpiWait = std::make_unique<MPIWait>();
+
+    //Create a continguous datatype to describe the block
+    MPI_Datatype conttype;
+    int err = MPI_Type_contiguous(bsz, MPI_CHAR, &conttype);
+
+    if (err == MPI_SUCCESS)
+        err = MPI_Type_commit(&conttype);
+
+    //Resize the block to account for the empty stride space (which will be ignored by the view)
+    MPI_Datatype readtype;
+    err= MPI_Type_create_resized(conttype, 0LU, osz, &readtype);
+
+    if (err == MPI_SUCCESS)
+        err = MPI_Type_commit(&readtype);
+
+    //This function call means multiple aread's can not be called on the same file simultaneously
+    //Set a view on the data based on our derived types
+    MPI_File_set_view(file, offset, conttype, readtype, "native", info);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+    auto viewIO = [&mpiWait, this, osz, bsz, readtype, conttype, offset]
+        (MPI_Offset off, uchar * buf, int nb, MPI_Status * stat)
+        {
+            log->record(name, Log::Layer::Data, Log::Status::Error, "Read overflows", Log::Verb::None, nb*osz > size_t(maxSize));
+            MPI_Request req;
+            int err = MPI_File_iread_at_all(file, off, buf, nb, conttype, &req);
+            printErr(log, name, Log::Layer::Data, err, NULL, "Collective read failed.");
+            mpiWait->add(req);
+            piol->isErr();
+        };
+#pragma GCC diagnostic pop
+
+    blockIO(viewIO, sz, d, osz, bsz);
+
+    std::unique_ptr<AsyncDataWait> wait(std::move(mpiWait));
+
+    //From the MPI 3.1 specification: Any communication that is currently using this datatype will complete normally.
+    MPI_Type_free(&readtype);
+    return wait;
+}
+
+void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
+{
+    auto wt = aread(offset, bsz, osz, nb, d);
+    wt->wait();
 }
 }}
