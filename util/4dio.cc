@@ -136,6 +136,9 @@ void outputNonMono(Piol piol, std::string dname, std::string sname, vec<size_t> 
     size_t offset = 0;
     size_t biggest = 0;
     size_t sz = 0;
+    //Figure out 1. biggest lnt value for collective I/O balancing.
+    //           2. sz (total number of traces) for writing nt to the output.
+    //           3. offset for indexing the I/O calls
     {
         auto nts = piol->comm->gather(vec<size_t>{lnt});
         for (size_t i = 0; i < nts.size(); i++)

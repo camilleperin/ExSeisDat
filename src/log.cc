@@ -12,22 +12,19 @@ namespace PIOL { namespace Log {
 void Logger::record(const std::string file, const Layer layer, const Status stat, const std::string msg, const Verb verbosity, bool condition)
 {
     if (condition)
-        record(file, layer, stat, msg, verbosity);
-}
+    {
+        if (static_cast<size_t>(verbosity) <= static_cast<size_t>(maxLevel))
+            loglist.push_front({file, layer, stat, msg, verbosity});
 
-void Logger::record(const std::string file, const Layer layer, const Status stat, const std::string msg, const Verb verbosity)
-{
-    if (static_cast<size_t>(verbosity) <= static_cast<size_t>(maxLevel))
-        loglist.push_front({file, layer, stat, msg, verbosity});
-
-    if (stat == Status::Error)
-        error = true;
+        if (stat == Status::Error)
+            error = true;
+    }
 }
 
 size_t Logger::numStat(const Status stat) const
 {
     size_t sz = 0;
-    for (auto & item : loglist)
+    for (auto item : loglist)
         sz += (item.stat == stat); //The spec guarantees this is one if the equality holds
     return sz;
 }

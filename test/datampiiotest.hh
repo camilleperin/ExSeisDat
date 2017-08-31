@@ -70,6 +70,8 @@ class MPIIOTest : public Test
             getBigEndian(xlNum(i+offset), &md[192]);
         }
 
+        std::cout << "OFFSET " << ilNum(offset) << " " << xlNum(offset) << std::endl;
+
         if (block)
             data->write(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getMDSz(), SEGSz::getDOSz(ns), nt, tr.data());
         else
@@ -131,12 +133,11 @@ class MPIIOTest : public Test
             {
 //TODO: Implement!
                 ASSERT_EQ(1, 0);
-           //     auto ar = data->aread(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getDOSz(ns)*nt, tr.data());
-           //     ar->wait();
             }
         }
 
         nt = modifyNt(data->getFileSz(), offset, nt, ns);
+        std::cout << "ROFFSET " << ilNum(offset) << " " << xlNum(offset) << std::endl;
         for (size_t i = 0; i < nt; i++)
         {
             uchar * md = &tr[step*i];

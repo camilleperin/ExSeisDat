@@ -191,7 +191,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
     }
 
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void readTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         SCOPED_TRACE("readTest " + std::to_string(size_t(Type)));
@@ -257,7 +257,7 @@ class ReadObjTest<Obj::ReadSEGY> : public BaseObjTest<Obj::ReadSEGY>
         ASSERT_EQ(tcnt, step + 2U*extra);
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void readRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
     {
         SCOPED_TRACE("readRandomTest " + std::to_string(size_t(Type)));
@@ -432,13 +432,13 @@ class ReadObjTest<Obj::ReadSeis> : public BaseObjTest<Obj::ReadSeis>
         EXPECT_EQ(dynamic_cast<Obj::ReadSeis *>(obj.get())->headerBlocks.size(), 1LU);
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void readTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         EXPECT_EQ(1, 0);
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void readRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
     {
         EXPECT_EQ(1, 0);
@@ -527,7 +527,6 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
         BaseWriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY>::makeWrite(nt_, ns_, inc_);
     }
 
-    template <bool MOCK = true>
     void writeHOPattern(void)
     {
         if (isMock)
@@ -572,7 +571,7 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
         }
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void writeTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         SCOPED_TRACE("writeTest " + std::to_string(size_t(Type)));
@@ -624,6 +623,7 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
                 wobj->writeDO(offset, ns, sz, &trnew[extra]);
             break;
         }
+        piol->isErr();
 
         if (!isMock)
         {
@@ -631,11 +631,11 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
             obj.reset(new Obj::ReadSEGY(piol, "", data));
             piol->isErr();
 
-            readTest<Type, false>(offset, sz, poff, magic);
+            readTest<Type>(offset, sz, poff, magic);
         }
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void writeRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
     {
         SCOPED_TRACE("writeRandomTest " + std::to_string(size_t(Type)));
@@ -690,17 +690,15 @@ class WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> : public BaseWriteObjTest<Obj:
             obj.reset(new Obj::ReadSEGY(piol, "", data));
             piol->isErr();
 
-            readRandomTest<Type, false>(offset, magic);
+            readRandomTest<Type>(offset, magic);
         }
     }
 };
-
 
 template <>
 class WriteObjTest<Obj::WriteSeis, Obj::ReadSeis> : public BaseWriteObjTest<Obj::WriteSeis, Obj::ReadSeis>
 {
     public :
-    template <bool MOCK = true>
     void writeHOPattern(void)
     {
         auto d = std::make_shared<Obj::SeisFileHeader>();
@@ -737,20 +735,18 @@ class WriteObjTest<Obj::WriteSeis, Obj::ReadSeis> : public BaseWriteObjTest<Obj:
         }
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void writeTest(csize_t offset, csize_t sz, csize_t poff = 0, uchar magic = 0)
     {
         ASSERT_EQ(0, 1);
     }
 
-    template <Block Type, bool MOCK = true>
+    template <Block Type>
     void writeRandomTest(const std::vector<size_t> & offset, uchar magic = 0)
     {
         ASSERT_EQ(0, 1);
     }
 };
-
-
 
 typedef ReadObjTest<Obj::ReadSEGY>                  ReadSEGYObjSpecTest;
 typedef WriteObjTest<Obj::WriteSEGY, Obj::ReadSEGY> WriteSEGYObjSpecTest;

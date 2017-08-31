@@ -19,7 +19,7 @@ namespace PIOL { namespace Data {
 template <typename U>
 using MFp = std::function<int(MPI_File, MPI_Offset, void *, int, MPI_Datatype, U *)>;
 
-typedef std::function<void(MPI_Offset, uchar *, int, MPI_Status * stat)> AFp;
+typedef std::function<void(MPI_Offset, uchar *, int)> AFp;
 
 class MPIWait : public AsyncDataWait
 {
@@ -32,9 +32,13 @@ class MPIWait : public AsyncDataWait
 
     void wait(void)
     {
-        std::vector<MPI_Status> status(reqvec.size());
         int err = MPI_Waitall(reqvec.size(), reqvec.data(), MPI_STATUSES_IGNORE);
 #warning checks err
+    }
+#warning use this
+    ~MPIWait(void)
+    {
+        wait();
     }
 };
 
@@ -103,6 +107,7 @@ class MPIIO : public Interface
 
     void blockIO(const AFp fn, csize_t nb, uchar * d, size_t osz, size_t bsz) const;
 
+    std::unique_ptr<AsyncDataWait> asyncIO(const MFp<MPI_Request> fp, csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const;
     /*! \brief Perform I/O on blocks of data where each block starts at the location specified by an array of offsets.
      *  \param[in] fn The MPI-IO style function to perform the I/O with
      *  \param[in] bsz The block size in bytes.

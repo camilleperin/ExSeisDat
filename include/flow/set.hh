@@ -183,9 +183,12 @@ class Set
     FileDeque file;                                             //!< A deque of unique pointers to file descriptors
     std::map<std::pair<size_t, geom_t>, FileDeque> fmap;        //!< A map of (ns, inc) key to a deque of file descriptor pointers
     std::map<std::pair<size_t, geom_t>, size_t> offmap;         //!< A map of (ns, inc) key to the current offset
+    //TODO: This next pointer is redundant
     std::shared_ptr<File::Rule> rule;                           //!< Contains a pointer to the Rules for parameters
     Cache cache;                                                //!< The cache of parameters and traces
     FuncLst func;                                               //!< The list of functions and related data
+
+    //These are stored purely for convenience.
     size_t rank;                                                //!< The rank of the particular process
     size_t numRank;                                             //!< The number of ranks
 

@@ -67,6 +67,7 @@ void printxSMinMax(ExSeisPIOL * piol, fourd_t xslmin, fourd_t xslmax, fourd_t xs
 fourd_t hypot(const fourd_t x, const fourd_t y)
 {
     return sqrtf(x*x + y*y);
+
    // return std::hypot(x, y);
 }
 
@@ -341,6 +342,7 @@ void calc4DBin(ExSeisPIOL * piol, const fourd_t dsrmax, const Coords * crd1, con
         initUpdate<false>(crd1, crd2, min, minrs);
 
     //This for loop determines the processes the local process will need to be communicating with.
+    //Region Zoom
     vec<size_t> active;
     for (size_t i = 0LU; i < numRank; i++)
         if ((xsmin[i] - dsrmax <= xslmax) && (xsmax[i] + dsrmax >= xslmin))

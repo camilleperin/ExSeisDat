@@ -211,6 +211,7 @@ class WriteInterface : public Interface
      *
      *  \details It is assumed that the parameter writing operation is not an update. Any previous
      *  contents of the trace header will be overwritten.
+     * \todo Put implementation into wfile.cc
      */
     void writeParam(csize_t sz, csize_t * offset, const Param * prm, csize_t skip = 0)
     {
@@ -240,6 +241,7 @@ class WriteInterface : public Interface
     virtual void writeTrace(csize_t sz, csize_t * offset, trace_t * trace, const Param * prm = PARAM_NULL, csize_t skip = 0) = 0;
 };
 
+#warning REDUNDANT!
 /*! Construct ReadSEGY objects with default object and MPI-IO layers.
  * \tparam T The type of the file layer.
  * \param[in] piol The piol shared object.

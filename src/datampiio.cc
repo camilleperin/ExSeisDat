@@ -267,7 +267,8 @@ void MPIIO::setFileSz(csize_t sz) const
 
 void MPIIO::read(csize_t offset, csize_t sz, uchar * d) const
 {
-    contigIO((coll ? MPI_File_read_at_all : MPI_File_read_at), offset, sz, d, " non-collective read Failure\n");
+    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
+    contigIO((coll ? MPI_File_read_at_all : MPI_File_read_at), offset, sz, d, std::string(coll ? "C" : "Non-c") + "ollective read Failure.\n");
 }
 
 void MPIIO::readv(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
@@ -308,7 +309,8 @@ void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d
 #pragma GCC diagnostic pop
 
     contigIO(viewIO, offset, nb, d, "Failed to read data over the integer limit.", bsz, osz);
-}*/
+}
+*/
 
 void MPIIO::contigIO(const MFp<MPI_Status> fn, csize_t offset, csize_t sz,
                      uchar * d, std::string msg, csize_t bsz, csize_t osz) const
@@ -367,11 +369,13 @@ void MPIIO::listIO(const MFp<MPI_Status> fn, csize_t bsz, csize_t sz, csize_t * 
 
 void MPIIO::read(csize_t bsz, csize_t sz, csize_t * offset, uchar * d) const
 {
+   MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
    listIO((coll ? MPI_File_read_at_all : MPI_File_read_at), bsz, sz, offset, d, "list read failure");
 }
 
 void MPIIO::write(csize_t bsz, csize_t sz, csize_t * offset, const uchar * d) const
 {
+    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
     listIO((coll ? mpiio_write_at_all : mpiio_write_at), bsz, sz, offset, const_cast<uchar *>(d), "list write failure");
 }
 
@@ -399,11 +403,13 @@ void MPIIO::writev(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const u
 
 void MPIIO::write(csize_t offset, csize_t sz, const uchar * d) const
 {
-    contigIO((coll ? mpiio_write_at_all : mpiio_write_at), offset, sz, const_cast<uchar *>(d), "Non-collective write failure.");
+    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
+    contigIO((coll ? mpiio_write_at_all : mpiio_write_at), offset, sz, const_cast<uchar *>(d), std::string(coll ? "C" : "Non-c") + "ollective write Failure.\n");
 }
 
 void MPIIO::write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const
 {
+    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
     auto viewIO = [this, offset, bsz, osz]
@@ -414,28 +420,10 @@ void MPIIO::write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uc
         };
 #pragma GCC diagnostic pop
 
-    contigIO(viewIO, offset, nb, const_cast<uchar *>(d), "Failed to read data over the integer limit.", bsz, osz);
+    contigIO(viewIO, offset, nb, const_cast<uchar *>(d), "Failed to write data over the integer limit.", bsz, osz);
 }
 
 /////////////////Async////////////
-/*MPI_Request MPIIO::areadv(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const MPI_Datatype da, uchar * buf) const
-{
-    if (nb*osz > size_t(maxSize))
-    {
-        std::string msg = "(nb, bsz, osz) = (" + std::to_string(nb) + ", "
-                                               + std::to_string(bsz) + ", "
-                                               + std::to_string(osz) + ")";
-        log->record(name, Log::Layer::Data, Log::Status::Error, "Read overflows MPI settings: " + msg, Log::Verb::None);
-    }
-
-    MPI_Request req;
-    err = MPI_File_iread_at_all(file, offset, buf, nb, da, &req);
-
-    printErr(log, name, Log::Layer::Data, err, NULL, "Collective read failed.");
-
-    return req;
-}*/
-
 void MPIIO::blockIO(const AFp fn, csize_t nb, uchar * d, size_t osz, size_t bsz) const
 {
     MPI_Status stat;
@@ -448,43 +436,54 @@ void MPIIO::blockIO(const AFp fn, csize_t nb, uchar * d, size_t osz, size_t bsz)
     for (size_t i = 0; i < nb; i += max)
     {
         size_t chunk = std::min(nb - i, max);
-        fn(i, &d[bsz*i], chunk, &stat);
+        fn(i, &d[bsz*i], chunk);
     }
 
     for (size_t i = 0; i < remCall; i++)
-        fn(0, NULL, 0, &stat);
+        fn(0, NULL, 0);
 }
 
-std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
+std::unique_ptr<AsyncDataWait> MPIIO::asyncIO(const MFp<MPI_Request> fp, csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
 {
     auto mpiWait = std::make_unique<MPIWait>();
 
+    if (!bsz)
+        return std::move(mpiWait);
     //Create a continguous datatype to describe the block
     MPI_Datatype conttype;
     int err = MPI_Type_contiguous(bsz, MPI_CHAR, &conttype);
+    log->record(name, Log::Layer::Data, Log::Status::Error, "failed to create contiguous type", Log::Verb::None, err != MPI_SUCCESS);
 
-    if (err == MPI_SUCCESS)
-        err = MPI_Type_commit(&conttype);
+    err = MPI_Type_commit(&conttype);
+    log->record(name, Log::Layer::Data, Log::Status::Error, "failed to commit contiguous type", Log::Verb::None, err != MPI_SUCCESS);
 
     //Resize the block to account for the empty stride space (which will be ignored by the view)
     MPI_Datatype readtype;
-    err= MPI_Type_create_resized(conttype, 0LU, osz, &readtype);
 
-    if (err == MPI_SUCCESS)
+    if (osz != bsz)
+    {
+        err = MPI_Type_create_resized(conttype, 0LU, osz, &readtype);
+        log->record(name, Log::Layer::Data, Log::Status::Error, "failed to resize contiguous type", Log::Verb::None, err != MPI_SUCCESS);
+
         err = MPI_Type_commit(&readtype);
+        log->record(name, Log::Layer::Data, Log::Status::Error, "failed to commit resized contiguous type", Log::Verb::None, err != MPI_SUCCESS);
+    }
+    else
+        readtype = conttype;
 
     //This function call means multiple aread's can not be called on the same file simultaneously
     //Set a view on the data based on our derived types
-    MPI_File_set_view(file, offset, conttype, readtype, "native", info);
+    err = MPI_File_set_view(file, offset, conttype, readtype, "native", info);
+    log->record(name, Log::Layer::Data, Log::Status::Error, "Failed to set new view", Log::Verb::None, err != MPI_SUCCESS);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-    auto viewIO = [&mpiWait, this, osz, bsz, readtype, conttype, offset]
-        (MPI_Offset off, uchar * buf, int nb, MPI_Status * stat)
+    auto viewIO = [&mpiWait, this, fp, osz, readtype, conttype]
+        (MPI_Offset off, uchar * buf, int nb)
         {
             log->record(name, Log::Layer::Data, Log::Status::Error, "Read overflows", Log::Verb::None, nb*osz > size_t(maxSize));
             MPI_Request req;
-            int err = MPI_File_iread_at_all(file, off, buf, nb, conttype, &req);
+            int err = fp(file, off, buf, nb, conttype, &req);
             printErr(log, name, Log::Layer::Data, err, NULL, "Collective read failed.");
             mpiWait->add(req);
             piol->isErr();
@@ -496,13 +495,22 @@ std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t
     std::unique_ptr<AsyncDataWait> wait(std::move(mpiWait));
 
     //From the MPI 3.1 specification: Any communication that is currently using this datatype will complete normally.
-    MPI_Type_free(&readtype);
-    return wait;
+    err = MPI_Type_free(&readtype);
+    log->record(name, Log::Layer::Data, Log::Status::Error, "failed to free readtype", Log::Verb::None, err != MPI_SUCCESS);
+    err = MPI_Type_free(&conttype);
+    log->record(name, Log::Layer::Data, Log::Status::Error, "failed to free conttype", Log::Verb::None, err != MPI_SUCCESS);
+
+    return std::move(wait);
 }
 
-void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
+std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
 {
-    auto wt = aread(offset, bsz, osz, nb, d);
-    wt->wait();
+    return asyncIO((coll ? MPI_File_iread_at_all : MPI_File_iread_at), offset, bsz, osz, sz, d);
 }
+
+//TODO: replace read with aread without capturing return
+/*void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
+{
+    aread(offset, bsz, osz, nb, d);
+}*/
 }}

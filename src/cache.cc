@@ -68,12 +68,15 @@ std::vector<size_t> Cache::getOutputTrace(FileDeque & desc, csize_t offset, csiz
 {
     std::vector<size_t> final;
 
+    //Find if the parameters are already in the cache.
     auto it = std::find_if(cache.begin(), cache.end(), [desc] (const CacheElem & elem) -> bool { return elem.checkPrm(desc); });
-    if (it != cache.end())
+    if (it != cache.end())  //The parameters are in the cache.
     {
         auto iprm = it->block->prm.get();
         size_t loc = 0LU;
         final.resize(sz);
+
+        //Now, per trace find the output locations and copy them to our final list of trace numbers.
         for (size_t i = 0LU; i < desc.size() && loc < offset+sz; i++)
         {
             size_t fsz = desc[i]->olst.size();
@@ -88,7 +91,7 @@ std::vector<size_t> Cache::getOutputTrace(FileDeque & desc, csize_t offset, csiz
 
             loc = nloc;
         }
-
+        //Sort that final list back to "input order" and copy the parameters from the cache to our active parameter structure of arrays
         std::vector<size_t> sortlist = getSortIndex(sz, final.data());
         for (size_t j = 0LU; j < sz; j++)
             File::cpyPrm(sortlist[j], iprm, j, prm);

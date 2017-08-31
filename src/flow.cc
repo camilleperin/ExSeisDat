@@ -258,8 +258,17 @@ std::vector<std::string> Set::startSingle(FuncLst::iterator fCurr, const FuncLst
 
 std::string Set::startGather(FuncLst::iterator fCurr, const FuncLst::iterator fEnd)
 {
+    //This if condition is used to make sure the gather functionality only processes
+    // a single input file. If there are multiple input files currently, they are
+    // saved into a single temporary file which is then processed further.
+    // Once Caching is used extensively, this will be redundant. Currently it is used
+    // as a simplification as an initial implementation.
     if (file.size() > 1LU)
     {
+        //We make a new function list with a single empty "single trace" operation.
+        //we do this so we can use the apparatus of startSingle to read from input
+        //and write to output
+
         OpOpt opt = {FuncOpt::NeedMeta, FuncOpt::NeedTrcVal, FuncOpt::SingleTrace};
         FuncLst tFunc;
         tFunc.push_back(std::make_shared<Op<InPlaceMod>>(opt, nullptr, nullptr, [] (TraceBlock * in) -> std::vector<size_t>
@@ -431,11 +440,11 @@ std::vector<std::string> Set::calcFunc(FuncLst::iterator fCurr, const FuncLst::i
 
             //TODO: Later this will need to be changed when the gather also continues with single trace cases
             auto type = FuncOpt::Gather;
-            #warning Trick goes here
             for (; fCurr != fEnd && (*fCurr)->opt.check(FuncOpt::Gather); ++fCurr);
         }
         else if ((*fCurr)->opt.check(FuncOpt::SingleTrace))
         {
+            //TODO: Could do a forward look than the function list and call startGather rather than startSingle
             std::vector<std::string> sname = startSingle(fCurr, fEnd);
             if (sname.size())
                 return sname;

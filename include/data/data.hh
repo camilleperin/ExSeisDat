@@ -57,6 +57,13 @@ class Interface
      */
     virtual void read(csize_t offset, csize_t sz, uchar * d) const = 0;
 
+    /*! \brief Write to storage.
+     *  \param[in] offset The offset in bytes from the current internal shared pointer
+     *  \param[in] sz     The amount of data to write to disk
+     *  \param[in] d      The array to read data output from
+     */
+    virtual void write(csize_t offset, csize_t sz, const uchar * d) const = 0;
+
     /*! \brief Read data from storage in blocks.
      *  \param[in] offset The offset in bytes from the current internal shared pointer
      *  \param[in] bsz    The size of a block in bytes
@@ -81,13 +88,6 @@ class Interface
      *  \param[in] d     The array to get the input from
      */
     virtual void write(csize_t bsz, csize_t sz, csize_t * offset, const uchar * d) const = 0;
-
-    /*! \brief Write to storage.
-     *  \param[in] offset The offset in bytes from the current internal shared pointer
-     *  \param[in] sz     The amount of data to write to disk
-     *  \param[in] d      The array to read data output from
-     */
-    virtual void write(csize_t offset, csize_t sz, const uchar * d) const = 0;
 
     /*! \brief Write data to storage in blocks.
      *  \param[in] offset The offset in bytes from the current internal shared pointer

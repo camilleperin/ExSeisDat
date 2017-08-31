@@ -68,33 +68,33 @@ std::vector<T> MPIGather(Log::Logger * log, const MPI * mpi, const std::vector<T
  *  \return Return the result of the reduce operation
  */
 template <typename T>
-T getMPIOp(Log::Logger * log, const MPI * mpi, T val, MPI_Op op)
+T getMPIOp(Log::Logger * log, const MPI_Comm comm, T val, MPI_Op op)
 {
     T result = 0;
-    int err = MPI_Allreduce(&val, &result, 1, MPIType<T>(), op, mpi->getComm());
+    int err = MPI_Allreduce(&val, &result, 1, MPIType<T>(), op, comm);
     printErr(log, "", Log::Layer::Comm, err, NULL, "MPI_Allreduce failure");
     return (err == MPI_SUCCESS ? result : 0LU);
 }
 
 size_t MPI::sum(size_t val)
 {
-    return getMPIOp(log, this, val, MPI_SUM);
+    return getMPIOp(log, getComm(), val, MPI_SUM);
 }
 
 size_t MPI::max(size_t val)
 {
-    return getMPIOp(log, this, val, MPI_MAX);
+    return getMPIOp(log, getComm(), val, MPI_MAX);
 }
 
 size_t MPI::min(size_t val)
 {
-    return getMPIOp(log, this, val, MPI_MIN);
+    return getMPIOp(log, getComm(), val, MPI_MIN);
 }
 
 size_t MPI::offset(size_t val)
 {
     size_t offset = 0LU;
-    MPI_Exscan(&val, &offset, 1LU, MPIType<size_t>(), MPI_SUM, MPI_COMM_WORLD);
+    MPI_Exscan(&val, &offset, 1LU, MPIType<size_t>(), MPI_SUM, getComm());
     return (!rank ? 0LU : offset);
 }
 
@@ -120,6 +120,6 @@ std::vector<double> MPI::gather(const std::vector<double> & in) const
 
 void MPI::barrier(void) const
 {
-    MPI_Barrier(comm);
+    MPI_Barrier(getComm());
 }
 }}

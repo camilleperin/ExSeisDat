@@ -24,7 +24,7 @@ class ReadSEGY : public ReadInterface
     typedef Obj::ReadSEGY DObj;
     /*! \brief The SEG-Y options structure.
      */
-    struct Opt : DObj::Opt
+    struct Opt : public DObj::Opt
     {
         typedef ReadSEGY Type;  //!< The Type of the class this structure is nested in
 

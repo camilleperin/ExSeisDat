@@ -21,6 +21,7 @@ class MPI : public Comm::Interface
     MPI_Comm comm;      //!< The MPI communicator.
     bool init;          //!< This variable records whether the class is responsible for initialisation of MPI or not.
     Log::Logger * log;  //!< For logging messages
+
     public :
     /*! \brief The MPI-Communicator options structure.
      */

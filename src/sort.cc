@@ -566,7 +566,8 @@ void sortP(ExSeisPIOL * piol, File::Param * prm, CompareP comp = nullptr)
 
     std::vector<size_t> t1(lnt);
     std::iota(t1.begin(), t1.end(), 0LU);
-    std::sort(t1.begin(), t1.end(), [prm, comp](size_t & a, size_t & b) -> bool { return comp(prm, a, b); });
+
+    std::sort(t1.begin(), t1.end(), [prm, comp](size_t a, size_t b) -> bool { return comp(prm, a, b); });
 
     File::Param temp1(prm->r, lnt + edge2);
     File::Param temp2(temp1.r, temp1.size());

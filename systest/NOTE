@@ -1,0 +1,5 @@
+testmatrix_\dparam are generated with pict (available on github)
+cathal@fionn2 systest [S-01631] $ bash que.sh n
+cathal@fionn2 systest [S-01631] $ bash md5sum.sh 
+cathal@fionn2 systest [S-01631] $ bash process.sh 
+cathal@fionn2 systest [S-01631] $ wc -l testmatrix_*
