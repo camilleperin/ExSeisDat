@@ -1,0 +1,12 @@
+Get relevant github repositories:
+
+git clone https://github.com/google/googletest
+git clone https://github.com/Microsoft/pict
+git clone https://github.com/nlohmann/json
+
+before attempting to compile.
+
+For Fionn, load relevant modules, i.e source mod_intel
+and then make -j
+
+

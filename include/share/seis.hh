@@ -34,6 +34,8 @@ struct SeisTraceHeader
     Type type;
 };
 
+//Read documentation on json github page: https://github.com/nlohmann/json
+
 template <typename T>
 void get(T * val, std::string name, nlohmann::json & j)
 {

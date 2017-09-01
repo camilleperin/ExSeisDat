@@ -74,7 +74,7 @@ void readTraceT(Obj::ReadInterface * obj, const SEGY::Format format, csize_t ns,
                                       csize_t sz, trace_t * trc, Param * prm, csize_t skip)
 {
     uchar * tbuf = reinterpret_cast<uchar *>(trc);
-    if (prm == PARAM_NULL)
+    if (prm == PARAM_NULL)      //read traces not parameters
         obj->readDODF(offset, ns, sz, tbuf);
     else
     {
@@ -82,29 +82,32 @@ void readTraceT(Obj::ReadInterface * obj, const SEGY::Format format, csize_t ns,
         std::vector<uchar> alloc(blockSz * sz);
         uchar * buf = (sz ? alloc.data() : nullptr);
 
-        if (trc == TRACE_NULL)
+        if (trc == TRACE_NULL)  //read parameters not traces
             obj->readDOMD(offset, ns, sz, buf);
-        else
+        else                    //read parameters and traces
         {
             obj->readDO(offset, ns, sz, buf);
+            //Copy all traces from the local buffer to the passed float buffer (which we have temporarily cast as a uchar type)
             for (size_t i = 0; i < sz; i++)
                 std::copy(&buf[i * SEGSz::getDOSz(ns) + SEGSz::getMDSz()], &buf[(i+1) * SEGSz::getDOSz(ns)],
                             &tbuf[i * SEGSz::getDFSz(ns)]);
         }
 
         extractParam(sz, buf, prm, (trc != TRACE_NULL ? SEGSz::getDFSz(ns) : 0LU), skip);
+        //set the local trace number for sorting purposes
         for (size_t i = 0; i < sz; i++)
             setPrm(i+skip, Meta::ltn, offunc(i), prm);
     }
 
+    //If we are dealing with traces, we need to perform conversions as necessary
     if (trc != TRACE_NULL && trc != nullptr)
     {
         if (format == SEGY::Format::IBM)
             for (size_t i = 0; i < ns * sz; i ++)
-                trc[i] = convertIBMtoIEEE(trc[i], true);
+                trc[i] = convertIBMtoIEEE(trc[i], true);    //Big-endian IBM to little-endian IEEE754 single precision
         else
             for (size_t i = 0; i < ns * sz; i++)
-                reverse4Bytes(&tbuf[i*sizeof(float)]);
+                reverse4Bytes(&tbuf[i*sizeof(float)]);      //Big-endian IEEE754 single precision to little-endian IEEE754 single precision
     }
 }
 

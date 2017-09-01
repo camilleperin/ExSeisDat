@@ -43,6 +43,8 @@ std::vector<CoordElem> getCoordMinMax(ExSeisPIOL * piol, size_t offset, size_t s
     if (!sz || !coord)
         coord = &temp;
 
+    //use the STL to get the min and max of the elements (corners)
+
     auto p = std::minmax_element(coord, coord + sz, min);
     std::vector<geom_t> lminmax = { elem1(*p.first), elem1(*p.second) };
     std::vector<size_t> ltrace = {offset + std::distance(coord, p.first),

@@ -68,25 +68,6 @@ class ReadSEGY : public ReadInterface
     void readTrace(csize_t sz, csize_t * offset, trace_t * trace, Param * prm = const_cast<Param *>(PARAM_NULL), csize_t skip = 0) const;
 };
 
-#ifdef GONE
-/*! A SEGY class for velocity models
- */
-class ReadSEGYModel : public Model3dInterface, public ReadSEGY
-{
-    public :
-    /*!
-     \param[in] piol_ The piol object.
-     \param[in] name_ The name of the file.
-     \param[in] obj_ A shared pointer for the object layer object.
-     */
-    ReadSEGYModel(const Piol piol_, const std::string name_, std::shared_ptr<Obj::ReadInterface> obj_);
-
-    std::vector<trace_t> readModel(csize_t offset, csize_t sz, const Uniray<size_t, llint, llint> & gather);
-
-    std::vector<trace_t> readModel(csize_t sz, csize_t * offset, const Uniray<size_t, llint, llint> & gather);
-};
-#endif
-
 /*! The SEG-Y implementation of the file layer
  */
 class WriteSEGY : public WriteInterface

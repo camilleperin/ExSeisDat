@@ -43,6 +43,8 @@ WriteSEGY::WriteSEGY(const Piol piol_, const std::string name_)
 
 void WriteSEGY::deinit(void)
 {
+    //Write the header object at de-initialisation time since we dont control when
+    //before that that each of the file parameters (e.g ns, inc, text etc) are set.
     if (!piol->log->isErr())    //TODO: On error this can be a source of a deadlock
     {
         calcNt();
@@ -73,22 +75,6 @@ WriteSEGY::~WriteSEGY(void)
 }
 
 ///////////////////////////////////       Member functions      ///////////////////////////////////
-/*void WriteSEGY::packHeader(uchar * buf) const
-{
-    for (size_t i = 0; i < text.size(); i++)
-        buf[i] = text[i];
-
-    SEGY::setMd(SEGY::Hdr::NumSample, int16_t(ns), buf);
-    SEGY::setMd(SEGY::Hdr::Type, int16_t(SEGY::Format::IEEE), buf);
-    SEGY::setMd(SEGY::Hdr::Increment, int16_t(std::lround(inc / incFactor)), buf);
-
-//Currently these are hard-coded entries:
-    SEGY::setMd(SEGY::Hdr::Units,      0x0001, buf);    //The unit system.
-    SEGY::setMd(SEGY::Hdr::SEGYFormat, 0x0100, buf);    //The version of the SEGY format.
-    SEGY::setMd(SEGY::Hdr::FixedTrace, 0x0001, buf);    //We always deal with fixed traces at present.
-    SEGY::setMd(SEGY::Hdr::Extensions, 0x0000, buf);    //We do not support text extensions at present.
-}*/
-
 void WriteSEGY::init(const WriteSEGY::Opt * opt)
 {
     incFactor = opt->incFactor;
@@ -178,6 +164,11 @@ void WriteSEGY::writeInc(const geom_t inc_)
 template <typename T>
 void writeTraceT(Obj::WriteInterface * obj, csize_t ns, T offset, csize_t sz, trace_t * trc, const Param * prm, csize_t skip)
 {
+    //This function performs the same thing as readTraceT but in opposite order basically.
+
+    //reverse the bytes on the input trace set to convert it to big endian.
+    //we switch the input rather than creating a second array to save space.
+    //At the end of this function, we convert back to little endian.
     uchar * tbuf = reinterpret_cast<uchar *>(trc);
     if (trc != TRACE_NULL && trc != nullptr)
         for (size_t i = 0; i < ns * sz; i++)

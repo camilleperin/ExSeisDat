@@ -21,8 +21,10 @@ void ReadInterface::readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trc
     std::vector<size_t> nodups;
     nodups.push_back(offset[idx[0]]);
     for (size_t j = 1; j < sz; j++)
-        if (offset[idx[j-1]] != offset[idx[j]])
+        if (offset[idx[j-1]] != offset[idx[j]]) //Check the current trace is not a duplicate of the previous
             nodups.push_back(offset[idx[j]]);
+
+    //nodups now contains an ordered list of trace numbers with no duplicates
 
     File::Param sprm(prm->r, (prm != PARAM_NULL ? nodups.size() : 0LU));
     std::vector<trace_t> strc(ns * (trc != TRACE_NULL ? nodups.size() : 0LU));
@@ -30,6 +32,7 @@ void ReadInterface::readTraceNonMono(csize_t sz, csize_t * offset, trace_t * trc
     readTrace(nodups.size(), nodups.data(), (trc != TRACE_NULL ? strc.data() : trc),
                                             (prm != PARAM_NULL ? &sprm : prm), 0LU);
 
+    //Now we need to copy back from the ordered no-dup list to our original requirement
     if (prm != PARAM_NULL)
         for (size_t n = 0, j = 0; j < sz; ++j)
         {

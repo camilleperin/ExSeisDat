@@ -2,9 +2,9 @@
  *   \file
  *   \author Cathal O Broin - cathal@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
- *   \date July 2016
+ *   \date Sept 2017
  *   \brief
- *   \details ReadSeis functions
+ *   \details ReadSeis functions. Mostly empty atm
  *//*******************************************************************************************/
 #include "global.hh"
 #include "file/fileseis.hh"

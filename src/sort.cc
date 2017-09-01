@@ -379,6 +379,7 @@ void sort(ExSeisPIOL * piol, size_t regionSz, std::vector<T> & temp1, std::vecto
     size_t edge1 = (rank ? regionSz : 0LU);
     size_t edge2 = (rank != numRank-1LU ? regionSz : 0LU);
 
+    //Perform a local sort of the input
     if (comp != nullptr)
         std::sort(dat.begin(), dat.begin() + lnt, [comp](auto & a, auto & b) -> bool { return comp(a, b); });
     else
@@ -389,6 +390,7 @@ void sort(ExSeisPIOL * piol, size_t regionSz, std::vector<T> & temp1, std::vecto
     while (numRank > 1) //Infinite loop if there is more than one process, otherwise no loop
     {
         temp2 = temp1;
+        //Send a halo to the process on the left (i.e one rank lower)
         sendLeft(piol, regionSz, temp1);
 
         if (comp != nullptr)
@@ -396,12 +398,16 @@ void sort(ExSeisPIOL * piol, size_t regionSz, std::vector<T> & temp1, std::vecto
         else
             std::sort(temp1.begin() + edge1, temp1.end()); // default pair sorting is first then second
 
+        //Return a halo to the process on the right
         sendRight(piol, regionSz, temp1);
 
         if (comp != nullptr)
             std::sort(temp1.begin(), temp1.end() - edge2, [comp](auto & a, auto & b) -> bool { return comp(a, b); });
         else
             std::sort(temp1.begin(), temp1.end() - edge2);
+
+        //Compare trace numbers before and after the sort round. If they are identical, on all processes
+        //then the sort is complete
 
         int reduced = 0;
         for (size_t j = 0; j < lnt && !reduced; j++)
@@ -565,8 +571,10 @@ void sortP(ExSeisPIOL * piol, File::Param * prm, CompareP comp = nullptr)
     size_t edge2 = (rank != numRank-1 ? regionSz : 0LU);
 
     std::vector<size_t> t1(lnt);
-    std::iota(t1.begin(), t1.end(), 0LU);
+    //We sort a parameter structure indirectly by first sorting an index into the structure and
+    //then by copying groups of parameters into a copy of the parameter structure.
 
+    std::iota(t1.begin(), t1.end(), 0LU);
     std::sort(t1.begin(), t1.end(), [prm, comp](size_t a, size_t b) -> bool { return comp(prm, a, b); });
 
     File::Param temp1(prm->r, lnt + edge2);
