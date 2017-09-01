@@ -126,7 +126,7 @@ class MPIIOTest : public Test
         {
             if (block)
             {
-                auto ar = data->aread(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getMDSz(), SEGSz::getDOSz(ns), nt, tr.data());
+                auto ar = data->read(SEGSz::getHOSz() + offset*SEGSz::getDOSz(ns), SEGSz::getMDSz(), SEGSz::getDOSz(ns), nt, tr.data());
                 ar->wait();
             }
             else
@@ -163,7 +163,7 @@ class MPIIOTest : public Test
         {
             if (block)
             {
-                auto ar = data->aread(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDFSz(ns), SEGSz::getDOSz(ns), nt, tr.data());
+                auto ar = data->read(SEGSz::getDODFLoc<float>(offset, ns), SEGSz::getDFSz(ns), SEGSz::getDOSz(ns), nt, tr.data());
 ;
                 ar->wait();
             }

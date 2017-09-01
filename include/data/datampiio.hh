@@ -68,24 +68,6 @@ class MPIIO : public Interface
     MPI_Info info;      //!< \copydoc MPIIO::Opt::info
     size_t maxSize;     //!< \copydoc MPIIO::Opt::maxSize
 
-    /*! Read a file using MPI-IO views. This function does not handle the integer limit
-     *  \param[in] offset The offset in bytes from the current internal shared pointer
-     *  \param[in] bsz    The size of a block in bytes
-     *  \param[in] osz    The number of bytes between the \c start of blocks
-     *  \param[in] sz     The number of blocks
-     *  \param[out] d     The array to store the output in
-     */
-    void readv(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const;
-
-    /*! Write a file using MPI-IO views. This function does not handle the integer limit
-     *  \param[in] offset The offset in bytes from the current internal shared pointer
-     *  \param[in] bsz    The size of a block in bytes
-     *  \param[in] osz    The number of bytes between the \c start of blocks
-     *  \param[in] sz     The number of blocks
-     *  \param[in] d      The array to read data output from
-     */
-    void writev(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, const uchar * d) const;
-
     /*! \brief The MPI-IO Init function.
      *  \param[in] opt  The MPI-IO options
      *  \param[in] mode The filemode
@@ -143,7 +125,7 @@ class MPIIO : public Interface
 
     void read(csize_t offset, csize_t sz, uchar * d) const;
 
-    void read(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const;
+    std::unique_ptr<AsyncDataWait> read(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const;
 
     void read(csize_t bsz, csize_t sz, csize_t * offset, uchar * d) const;
 
@@ -151,9 +133,7 @@ class MPIIO : public Interface
 
     void write(csize_t offset, csize_t sz, const uchar * d) const;
 
-    void write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const;
-
-    std::unique_ptr<AsyncDataWait> aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const;
+    std::unique_ptr<AsyncDataWait> write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const;
 };
 }}
 #endif

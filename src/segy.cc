@@ -17,6 +17,7 @@ geom_t scaleConv(int16_t scale)
     return (scale > 0 ? geom_t(scale) : geom_t(1)/geom_t(-scale));
 }
 
+//Don't modify this unless you know exactly what you are doing.
 int16_t deScale(const geom_t val)
 {
     constexpr llint tenk = 10000LL;

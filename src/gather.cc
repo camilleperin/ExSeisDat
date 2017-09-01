@@ -15,7 +15,7 @@ namespace PIOL { namespace File {
  * \param[in] prm The parameter structure.
  * \return Return an 'array' of tuples. Each tuple corresponds to each gather. Tuple elements:
  *         1) Number of traces in the gather, 2) inline, 3) crossline.
- * \todo TODO: This can be generalised
+ * \todo TODO: This can be generalised with a template parameter pack
  */
 Uniray<size_t, llint, llint> getGathers(ExSeisPIOL * piol, Param * prm)
 {
@@ -23,6 +23,7 @@ Uniray<size_t, llint, llint> getGathers(ExSeisPIOL * piol, Param * prm)
     size_t numRank = piol->comm->getNumRank();
     std::vector<std::tuple<size_t, llint, llint>> lline;
 
+    //Record the starting il/xl
     llint ill = getPrm<llint>(0LU, Meta::il, prm);
     llint xll = getPrm<llint>(0LU, Meta::xl, prm);
     lline.emplace_back(1LU, ill, xll);
@@ -32,30 +33,41 @@ Uniray<size_t, llint, llint> getGathers(ExSeisPIOL * piol, Param * prm)
         llint il = getPrm<llint>(i, Meta::il, prm);
         llint xl = getPrm<llint>(i, Meta::xl, prm);
 
+        //see if the current il/xl is the same as the previous il/xl
+        //If it isn't, start recording the size of the next gather
         if (il != ill || xl != xll)
         {
             lline.emplace_back(0LU, il, xl);
             ill = il;
             xll = xl;
         }
+
+        //Increment the size of the latest gather
         ++std::get<0>(lline.back());
     }
 
     auto trcnum = piol->comm->gather<size_t>(std::get<0>(lline.front()));
+
+
     auto ilb = piol->comm->gather<size_t>(std::get<1>(lline.back()));
     auto xlb = piol->comm->gather<size_t>(std::get<2>(lline.back()));
+
     auto ilf = piol->comm->gather<size_t>(std::get<1>(lline.front()));
     auto xlf = piol->comm->gather<size_t>(std::get<2>(lline.front()));
 
+    //Detect if we should treat our first il/xl gather as belonging to our neighbour
     size_t start = (rank ? ilb[rank-1LU] == ilf[rank] && xlb[rank-1LU] == xlf[rank] : 0U);
-    if (start < lline.size())
-        if (ilf[rank+1LU] == ilb[rank] && xlf[rank+1LU] == xlb[rank])
-            for (size_t i = rank+1LU; i < numRank && ilb[rank] == ilf[i] && xlb[rank] == xlf[i]; i++)
-                std::get<0>(lline.back()) += trcnum[i];
+
+    //If our last il/xl matches the first of our neighbour then we should handle it on the
+    //current process
+    if (start < lline.size() && ilf[rank+1LU] == ilb[rank] && xlf[rank+1LU] == xlb[rank])
+        for (size_t i = rank+1LU; i < numRank && ilb[rank] == ilf[i] && xlb[rank] == xlf[i]; i++)
+            std::get<0>(lline.back()) += trcnum[i];
 
     size_t sz = lline.size()-start;
     size_t offset = piol->comm->offset(sz);
 
+    //Copy our local list to a distributed list
     Uniray<size_t, llint, llint> line(piol, piol->comm->sum(sz));
     for (size_t i = 0; i < sz; i++)
         line.set(i + offset, lline[i+start]);

@@ -5,7 +5,10 @@
  *   \date July 2016
  *   \brief The Object layer interface
  *   \details The Object layer interface is a base class which specific Obj implementations
- *   work off
+ *   work off. The object layer is distinguished from the file layer by the fact that the object
+ *   layer only deals with structure while the file layer performs the bulk of manipulations of
+ *   traces/parameters etc. This will be an advantage when you want to dynamically change
+ *   the layout, e.g for SEGY to separate trace headers and traces into different parts of a file
 *//*******************************************************************************************/
 #ifndef PIOLOBJ_INCLUDE_GUARD
 #define PIOLOBJ_INCLUDE_GUARD

@@ -64,14 +64,15 @@ class Interface
      */
     virtual void write(csize_t offset, csize_t sz, const uchar * d) const = 0;
 
-    /*! \brief Read data from storage in blocks.
+    /*! \brief Asynchronous read data from storage in blocks.
      *  \param[in] offset The offset in bytes from the current internal shared pointer
      *  \param[in] bsz    The size of a block in bytes
      *  \param[in] osz    The number of bytes between the \c start of blocks
      *  \param[in] nb     The number of blocks
      *  \param[out] d     The array to store the output in
+     *  \return Return an async wait object to wait on the I/O to complete.
      */
-    virtual void read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const = 0;
+    virtual std::unique_ptr<AsyncDataWait> read(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const = 0;
 
     /*! read a file where each block is determined from the list of offset
      *  \param[in] bsz    The size of a block in bytes
@@ -89,16 +90,15 @@ class Interface
      */
     virtual void write(csize_t bsz, csize_t sz, csize_t * offset, const uchar * d) const = 0;
 
-    /*! \brief Write data to storage in blocks.
+    /*! \brief Asynchronous write data to storage in blocks.
      *  \param[in] offset The offset in bytes from the current internal shared pointer
      *  \param[in] bsz    The size of a block in bytes
      *  \param[in] osz    The number of bytes between the \c start of blocks
      *  \param[in] nb     The number of blocks
      *  \param[in] d      The array to read data output from
+     *  \return Return an async wait object to wait on the I/O to complete.
      */
-    virtual void write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const = 0;
-
-    virtual std::unique_ptr<AsyncDataWait> aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const = 0;
+    virtual std::unique_ptr<AsyncDataWait> write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const = 0;
 };
 }}
 #endif

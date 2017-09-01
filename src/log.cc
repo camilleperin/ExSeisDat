@@ -40,6 +40,8 @@ void Logger::procLog(void)
     {
         Item & item = loglist.front();
 
+        //Although this currently prints to standard error, the point of this logging mechanism is that eventually this
+        //could be changed to output to file or hook into some GUI etc.
         std::cerr << item.file << " " << static_cast<size_t>(item.layer) << " " << static_cast<size_t>(item.stat) <<
                      " " << item.msg << " " << static_cast<size_t>(item.vrbsy) << std::endl;
         loglist.pop_front();

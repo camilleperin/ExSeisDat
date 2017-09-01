@@ -38,13 +38,18 @@ struct FakeData : public Data::Interface
     }
 
     void read(csize_t offset, csize_t sz, uchar * d) const {}
-    void read(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const {}
     void read(csize_t bsz, csize_t sz, csize_t * offset, uchar * d) const {}
     void setFileSz(csize_t sz) const {}
     void write(csize_t offset, csize_t sz, const uchar * d) const {}
-    void write(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, const uchar * d) const {}
+    std::unique_ptr<Data::AsyncDataWait> write(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, const uchar * d) const
+    {
+        return std::unique_ptr<Data::AsyncDataWait>();
+    }
     void write(csize_t bsz, csize_t sz, csize_t * offset, const uchar * d) const {}
-    std::unique_ptr<Data::AsyncDataWait> aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const {}
+    std::unique_ptr<Data::AsyncDataWait> read(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
+    {
+        return std::unique_ptr<Data::AsyncDataWait>();
+    }
 };
 #pragma GCC diagnostic pop
 

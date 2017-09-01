@@ -146,6 +146,9 @@ Data::MPIIO::Opt::Opt(void)
     fcomm = MPI_COMM_WORLD;
     info = MPI_INFO_NULL;
     MPI_Info_create(&info);
+
+//General info options
+
 //    MPI_Info_set(info, "access_style", "read_once");
 //    MPI_Info_set(info, "romio_cb_read", "false");
 //    MPI_Info_set(info, "romio_cb_write", "false");
@@ -154,6 +157,7 @@ Data::MPIIO::Opt::Opt(void)
 //    MPI_Info_set(info, "direct_read", "true");
 //    MPI_Info_set(info, "direct_write", "true");
 
+//Lustre-specific info options
 //    MPI_Info_set(info, "cb_block_size", "");  see spec for more
 //    MPI_Info_set(info, "chunked", "");        see spec for more
 //    MPI_Info_set(info, "nb_proc", "");
@@ -161,7 +165,10 @@ Data::MPIIO::Opt::Opt(void)
 //    MPI_Info_set(info, "striping_factor", "10");
 //    MPI_Info_set(info, "striping_unit", "2097152");
 
+//Panasas-specific info options
 //    MPI_Info_set(info, "panfs_concurrent_write", "false");    //ROMIO has this on by default. Annoying.
+
+//The maximum I/O allowed by MPI I/O due to their use of 32 signed integers for internal counting etc.
     maxSize = getLim<int32_t>();
 }
 
@@ -222,9 +229,11 @@ void MPIIO::Init(const MPIIO::Opt & opt, FileMode mode)
     maxSize = opt.maxSize;
     file = MPI_FILE_NULL;
     MPI_Aint lb, esz;
+
     int err = MPI_Type_get_true_extent(MPI_CHAR, &lb, &esz);
     printErr(log, name, Log::Layer::Data, err, nullptr, "Getting MPI extent failed");
 
+    //Perform a safety check to make sure assumptions made throughout are true
     if (esz != 1)
         log->record(name, Log::Layer::Data, Log::Status::Error, "MPI_CHAR extent is bigger than one.", Log::Verb::None);
 
@@ -267,76 +276,10 @@ void MPIIO::setFileSz(csize_t sz) const
 
 void MPIIO::read(csize_t offset, csize_t sz, uchar * d) const
 {
-    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
-    contigIO((coll ? MPI_File_read_at_all : MPI_File_read_at), offset, sz, d, std::string(coll ? "C" : "Non-c") + "ollective read Failure.\n");
+    asyncIO((coll ? MPI_File_iread_at_all : MPI_File_iread_at), offset, sz, sz, 1, d);
 }
 
-void MPIIO::readv(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
-{
-    if (nb*osz > size_t(maxSize))
-    {
-        std::string msg = "(nb, bsz, osz) = (" + std::to_string(nb) + ", "
-                                               + std::to_string(bsz) + ", "
-                                               + std::to_string(osz) + ")";
-        log->record(name, Log::Layer::Data, Log::Status::Error, "Read overflows MPI settings: " + msg, Log::Verb::None);
-    }
-
-    //Set a view so that MPI_File_read... functions only see contiguous data.
-    MPI_Datatype view;
-    int err = strideView(file, info, offset, bsz, osz, nb, &view);
-    printErr(log, name, Log::Layer::Data, err, NULL, "Failed to set a view for reading.");
-
-    read(0LU, nb*bsz, d);
-
-    //Reset the view.
-    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
-    MPI_Type_free(&view);
-}
-
-
-#warning temporary for testing
-/*
-void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
-{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-    auto viewIO = [this, offset, bsz, osz]
-        (MPI_File file, MPI_Offset off, void * d, int numb, MPI_Datatype da, MPI_Status * stat) -> int
-        {
-            readv(off, bsz, osz, size_t(numb), static_cast<uchar *>(d));
-            return MPI_SUCCESS;
-        };
-#pragma GCC diagnostic pop
-
-    contigIO(viewIO, offset, nb, d, "Failed to read data over the integer limit.", bsz, osz);
-}
-*/
-
-void MPIIO::contigIO(const MFp<MPI_Status> fn, csize_t offset, csize_t sz,
-                     uchar * d, std::string msg, csize_t bsz, csize_t osz) const
-{
-    MPI_Status stat;
-    int err = MPI_SUCCESS;
-    size_t max = maxSize / osz;
-    size_t remCall = 0;
-    auto vec = piol->comm->gather<size_t>(sz);
-    remCall = *std::max_element(vec.begin(), vec.end());
-    remCall = remCall/max + (remCall % max > 0) - sz/max - (sz % max > 0);
-
-    for (size_t i = 0; i < sz; i += max)
-    {
-        size_t chunk = std::min(sz - i, max);
-        err = fn(file, MPI_Offset(offset + osz*i), &d[bsz*i], chunk, MPIType<uchar>(), &stat);
-        printErr(log, name, Log::Layer::Data, err, &stat, msg);
-    }
-
-    for (size_t i = 0; i < remCall; i++)
-    {
-        err = fn(file, 0, NULL, 0, MPIType<uchar>(), &stat);
-        printErr(log, name, Log::Layer::Data, err, &stat, msg);
-    }
-}
-
+//TODO: All non-async functions can be switched to async functions.
 //Perform I/O to acquire data corresponding to fixed-size blocks of data located according to a list of offsets.
 void MPIIO::listIO(const MFp<MPI_Status> fn, csize_t bsz, csize_t sz, csize_t * offset, uchar * d, std::string msg) const
 {
@@ -352,7 +295,7 @@ void MPIIO::listIO(const MFp<MPI_Status> fn, csize_t bsz, csize_t sz, csize_t * 
 
     int err = MPI_SUCCESS;
     MPI_Status stat;
-    for (size_t i = 0; i < sz && err == MPI_SUCCESS; i += max)
+    for (size_t i = 0; i < sz; i += max)
     {
         size_t chunk = std::min(sz - i, max);
         err = iol(fn, file, info, bsz, chunk, reinterpret_cast<const MPI_Aint *>(&offset[i]), &d[i*bsz], &stat);
@@ -369,8 +312,9 @@ void MPIIO::listIO(const MFp<MPI_Status> fn, csize_t bsz, csize_t sz, csize_t * 
 
 void MPIIO::read(csize_t bsz, csize_t sz, csize_t * offset, uchar * d) const
 {
-   MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
-   listIO((coll ? MPI_File_read_at_all : MPI_File_read_at), bsz, sz, offset, d, "list read failure");
+    //A previous call may have changed the file view, so we should reset it now
+    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
+    listIO((coll ? MPI_File_read_at_all : MPI_File_read_at), bsz, sz, offset, d, "list read failure");
 }
 
 void MPIIO::write(csize_t bsz, csize_t sz, csize_t * offset, const uchar * d) const
@@ -379,49 +323,11 @@ void MPIIO::write(csize_t bsz, csize_t sz, csize_t * offset, const uchar * d) co
     listIO((coll ? mpiio_write_at_all : mpiio_write_at), bsz, sz, offset, const_cast<uchar *>(d), "list write failure");
 }
 
-void MPIIO::writev(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const
-{
-    if (nb*osz > size_t(maxSize))
-    {
-        std::string msg = "(nb, bsz, osz) = (" + std::to_string(nb) + ", "
-                                               + std::to_string(bsz) + ", "
-                                               + std::to_string(osz) + ")";
-        log->record(name, Log::Layer::Data, Log::Status::Error, "Write overflows MPI settings: " + msg, Log::Verb::None);
-    }
-
-    //Set a view so that MPI_File_read... functions only see contiguous data.
-    MPI_Datatype view;
-    int err = strideView(file, info, offset, bsz, osz, nb, &view);
-    printErr(log, name, Log::Layer::Data, err, NULL, "Failed to set a view for reading.");
-
-    write(0LU, nb*bsz, d);
-
-    //Reset the view.
-    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
-    MPI_Type_free(&view);
-}
-
 void MPIIO::write(csize_t offset, csize_t sz, const uchar * d) const
 {
-    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
-    contigIO((coll ? mpiio_write_at_all : mpiio_write_at), offset, sz, const_cast<uchar *>(d), std::string(coll ? "C" : "Non-c") + "ollective write Failure.\n");
+    asyncIO((coll ? MPI_File_iwrite_at_all : MPI_File_iwrite_at), offset, sz, sz, 1, const_cast<uchar *>(d));
 }
 
-void MPIIO::write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const
-{
-    MPI_File_set_view(file, 0, MPI_CHAR, MPI_CHAR, "native", info);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-    auto viewIO = [this, offset, bsz, osz]
-        (MPI_File file, MPI_Offset off, void * d, int numb, MPI_Datatype da, MPI_Status * stat) -> int
-        {
-            writev(off, bsz, osz, size_t(numb), static_cast<uchar *>(d));
-            return MPI_SUCCESS;
-        };
-#pragma GCC diagnostic pop
-
-    contigIO(viewIO, offset, nb, const_cast<uchar *>(d), "Failed to write data over the integer limit.", bsz, osz);
-}
 
 /////////////////Async////////////
 void MPIIO::blockIO(const AFp fn, csize_t nb, uchar * d, size_t osz, size_t bsz) const
@@ -449,6 +355,7 @@ std::unique_ptr<AsyncDataWait> MPIIO::asyncIO(const MFp<MPI_Request> fp, csize_t
 
     if (!bsz)
         return std::move(mpiWait);
+
     //Create a continguous datatype to describe the block
     MPI_Datatype conttype;
     int err = MPI_Type_contiguous(bsz, MPI_CHAR, &conttype);
@@ -457,7 +364,7 @@ std::unique_ptr<AsyncDataWait> MPIIO::asyncIO(const MFp<MPI_Request> fp, csize_t
     err = MPI_Type_commit(&conttype);
     log->record(name, Log::Layer::Data, Log::Status::Error, "failed to commit contiguous type", Log::Verb::None, err != MPI_SUCCESS);
 
-    //Resize the block to account for the empty stride space (which will be ignored by the view)
+    //Create a new datatype which resizes the block to account for the empty stride space (which will be ignored by the view)
     MPI_Datatype readtype;
 
     if (osz != bsz)
@@ -471,13 +378,14 @@ std::unique_ptr<AsyncDataWait> MPIIO::asyncIO(const MFp<MPI_Request> fp, csize_t
     else
         readtype = conttype;
 
-    //This function call means multiple aread's can not be called on the same file simultaneously
-    //Set a view on the data based on our derived types
+    //Set a file of the file using the new readtype. After the view is set, we want to perform reads in terms of conttype.
+    //Since we only read in this function with strided blocks, we only need to view the data in terms of said blocks.
+    //
+    //Restriction: This function call means multiple read's can not be called on the same file simultaneously
     err = MPI_File_set_view(file, offset, conttype, readtype, "native", info);
     log->record(name, Log::Layer::Data, Log::Status::Error, "Failed to set new view", Log::Verb::None, err != MPI_SUCCESS);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+    //A lambda function which captures our datatypes etc
     auto viewIO = [&mpiWait, this, fp, osz, readtype, conttype]
         (MPI_Offset off, uchar * buf, int nb)
         {
@@ -488,10 +396,11 @@ std::unique_ptr<AsyncDataWait> MPIIO::asyncIO(const MFp<MPI_Request> fp, csize_t
             mpiWait->add(req);
             piol->isErr();
         };
-#pragma GCC diagnostic pop
 
+    //Perform the relevant I/O since the view is set
     blockIO(viewIO, sz, d, osz, bsz);
 
+    //Converte our MPI specific pointer in to a base class pointer
     std::unique_ptr<AsyncDataWait> wait(std::move(mpiWait));
 
     //From the MPI 3.1 specification: Any communication that is currently using this datatype will complete normally.
@@ -503,14 +412,13 @@ std::unique_ptr<AsyncDataWait> MPIIO::asyncIO(const MFp<MPI_Request> fp, csize_t
     return std::move(wait);
 }
 
-std::unique_ptr<AsyncDataWait> MPIIO::aread(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d) const
+std::unique_ptr<AsyncDataWait> MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
 {
-    return asyncIO((coll ? MPI_File_iread_at_all : MPI_File_iread_at), offset, bsz, osz, sz, d);
+    return asyncIO((coll ? MPI_File_iread_at_all : MPI_File_iread_at), offset, bsz, osz, nb, d);
 }
 
-//TODO: replace read with aread without capturing return
-/*void MPIIO::read(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, uchar * d) const
+std::unique_ptr<AsyncDataWait> MPIIO::write(csize_t offset, csize_t bsz, csize_t osz, csize_t nb, const uchar * d) const
 {
-    aread(offset, bsz, osz, nb, d);
-}*/
+    return asyncIO((coll ? MPI_File_iwrite_at_all : MPI_File_iwrite_at), offset, bsz, osz, nb, const_cast<uchar *>(d));
+}
 }}

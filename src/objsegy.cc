@@ -108,11 +108,12 @@ void WriteSEGY::writeHO(const std::shared_ptr<FileMetadata> ho) const
         for (size_t i = 0; i < ho->text.size(); i++)
             buf[i] = ho->text[i];
 
+        //Set the binary headers. Currently only these 3 are of importance
         SEGY::setMd(SEGY::Hdr::NumSample, int16_t(ho->ns), buf.data());
         SEGY::setMd(SEGY::Hdr::Type, int16_t(SEGY::Format::IEEE), buf.data());
         SEGY::setMd(SEGY::Hdr::Increment, int16_t(std::lround(ho->inc / (sho ? sho->incFactor : SI::Micro))), buf.data());
 
-        //Currently these are hard-coded entries:
+        //TODO: Currently these are hard-coded entries:
         SEGY::setMd(SEGY::Hdr::Units,      0x0001, buf.data());    //The unit system.
         SEGY::setMd(SEGY::Hdr::SEGYFormat, 0x0100, buf.data());    //The version of the SEGY format.
         SEGY::setMd(SEGY::Hdr::FixedTrace, 0x0001, buf.data());    //We always deal with fixed traces at present.

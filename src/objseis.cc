@@ -126,6 +126,7 @@ std::string getPath(Piol piol, std::string name, std::string projName)
 
 void ReadSeis::Init(const Opt * opt)
 {
+    //Read the Seis header
     std::vector<uchar> dat(data->getFileSz());
     data->read(0LU, dat.size(), dat.data());
     desc = std::make_shared<SeisFileHeader>(dat);
@@ -134,6 +135,7 @@ void ReadSeis::Init(const Opt * opt)
     std::string path = getPath(piol, name, opt->projName);
 
     std::string projVar = "${project}";
+    //Open each of the files described in the Seis header.
     for (auto name : desc->extents)
     {
         std::string ext = getExt(name);
@@ -152,6 +154,7 @@ void ReadSeis::Init(const Opt * opt)
 
     //multiple number of samples per trace by sample length, add length of scalars too.
     size_t traceLen = desc->bytes * desc->ns + (desc->bytes != scalSz ? scalSz * ((desc->ns + desc->packetSz - 1LU) / desc->packetSz) : 0LU);
+
     //Round to the nearest multiple of scalar size (required by seis format).
     traceLen = ((traceLen + scalSz - 1LU)/scalSz)*scalSz;
 
@@ -227,7 +230,8 @@ void WriteSeis::writeHO(const std::shared_ptr<FileMetadata> ho) const
 {
     assert(ho);
     auto d = std::dynamic_pointer_cast<SeisFileHeader>(ho);
-    if (!d)
+
+    if (!d) //Check if we are dealing with a SeisFileHeader derived class of FileMetadata
     {
         d = std::make_shared<SeisFileHeader>();
         d->bytes = sizeof(float);

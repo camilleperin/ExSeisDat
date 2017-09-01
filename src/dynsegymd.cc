@@ -195,35 +195,23 @@ Rule::Rule(bool full, bool defaults, bool extra)
 
     if (defaults)
     {
-        addRule(Meta::xSrc);
-        addRule(Meta::ySrc);
-        addRule(Meta::xRcv);
-        addRule(Meta::yRcv);
-        addRule(Meta::xCmp);
-        addRule(Meta::yCmp);
-        addRule(Meta::Offset);
-        addRule(Meta::il);
-        addRule(Meta::xl);
-        addRule(Meta::tn);
+        //Add some SEG-Y standard parameters that are used often
+        std::vector<Meta> meta = {Meta::xSrc, Meta::ySrc, Meta::xRcv, Meta::yRcv,
+                                  Meta::xCmp, Meta::yCmp, Meta::Offset, Meta::il,
+                                  Meta::xl, Meta::tn};
+        for (auto m : meta)
+            addRule(m);
     }
 
     if (extra)
     {
-        addRule(Meta::tnl);
-        addRule(Meta::tnr);
-        addRule(Meta::tne);
-        addRule(Meta::SrcNum);
-        addRule(Meta::Tic);
-        addRule(Meta::VStack);
-        addRule(Meta::HStack);
-        addRule(Meta::RGElev);
-        addRule(Meta::SSElev);
-        addRule(Meta::SDElev);
-        addRule(Meta::ns);
-        addRule(Meta::inc);
-        addRule(Meta::ShotNum);
-        addRule(Meta::TraceUnit);
-        addRule(Meta::TransUnit);
+        //Add some SEG-Y standard parameters that are used less often
+        std::vector<Meta> meta = {Meta::tnl, Meta::tnr, Meta::tne, Meta::SrcNum,
+                                  Meta::Tic, Meta::VStack, Meta::HStack, Meta::RGElev,
+                                  Meta::SSElev, Meta::SDElev, Meta::ns, Meta::inc,
+                                  Meta::ShotNum, Meta::TraceUnit, Meta::TransUnit};
+        for (auto m : meta)
+            addRule(m);
     }
 
     if (full)
@@ -247,6 +235,9 @@ Rule::~Rule(void)
 
 size_t Rule::extent(void)
 {
+    //Calculate the distance between the smallest and largest locations data
+    //is stored in the trace header.
+
     if (flag.fullextent)
         return SEGSz::getMDSz();
     if (flag.badextent)
@@ -423,6 +414,9 @@ void cpyPrm(csize_t j, const Param * src, csize_t k, Param * dst)
     Rule * srule = src->r.get();
     Rule * drule = dst->r.get();
 
+    //Do an upfront extraction of any trace header that is stored in
+    //the original format, but which does not have a specific rule in
+    //the source. Any further rules will overlay on top of this.
     if (srule->numCopy)
         extractParam(1LU, &src->c[j * SEGSz::getMDSz()], dst, 0LU, k);
 
@@ -430,6 +424,8 @@ void cpyPrm(csize_t j, const Param * src, csize_t k, Param * dst)
     {
         Rule * r = srule;
 
+        //if our rule structures are the same we can do a direct copy
+        //without having to do an extra rule check.
         for (size_t i = 0; i < r->numFloat; i++)
             dst->f[k * r->numFloat + i] = src->f[j * r->numFloat + i];
         for (size_t i = 0; i < r->numLong; i++)
@@ -494,11 +490,13 @@ bool Rule::addRule(Rule * r)
                 break;
                 default : break;
             }
+    //TODO: this function can be switched to a void returning function
     return true;
 }
 
 
 
+//Copy from the parameter structure to a buffer which may or may not reqire a stride.
 void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_t skip)
 {
     if (prm == nullptr || !sz)
@@ -506,7 +504,11 @@ void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_
     auto r = prm->r;
     size_t start = r->start;
 
-    if (r->numCopy)
+    //If the Copy feature is enabled, we make an extra copy of the full trace header
+    //NOTE: This feature is not needed in Seis since we can always map every Seis feature
+    //to a rule provided we allow for arbitrarily named parameters. i.e for Seis, the
+    //data is stored in the usual vectors (f,i,s,t) in the param structure.
+    if (r->numCopy) //If enabled, is SEGY
     {
         if (!stride)
             std::copy(&prm->c[skip * SEGSz::getMDSz()], &prm->c[(skip + sz) * SEGSz::getMDSz()], buf);
@@ -533,6 +535,7 @@ void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_
             {
                 case MdType::Float :
                 {
+                    //SEGY specific float conversion using scalers.
                     rule.push_back(dynamic_cast<SEGYFloatRuleEntry *>(t));
                     auto tr = static_cast<Tr>(rule.back()->scalLoc);
                     int16_t scal1 = (scal.find(tr) != scal.end() ? scal[tr] : 1);
@@ -549,6 +552,7 @@ void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_
                 getBigEndian(prm->s[(i + skip) * r->numShort + t->num], &md[loc]);
                 break;
                 case MdType::Long :
+                //Type matters for getBigEndian
                 getBigEndian(int32_t(prm->i[(i + skip) * r->numLong + t->num]), &md[loc]);
                 default : break;
             }
@@ -566,6 +570,7 @@ void insertParam(size_t sz, const Param * prm, uchar * buf, size_t stride, size_
     }
 }
 
+//This function s the recriprocal of the above function (insertParam).
 void extractParam(size_t sz, const uchar * buf, Param * prm, size_t stride, size_t skip)
 {
     if (prm == nullptr || !sz)
@@ -595,6 +600,7 @@ void extractParam(size_t sz, const uchar * buf, Param * prm, size_t stride, size
             switch (t->type())
             {
                 case MdType::Float :
+                //SEG-Y specific scaler conversion
                 prm->f[(i + skip) * r->numFloat + t->num] = SEGY::scaleConv(getHost<int16_t>(&md[dynamic_cast<SEGYFloatRuleEntry *>(t)->scalLoc - r->start-1LU]))
                                                    * geom_t(getHost<int32_t>(&md[loc]));
                 break;

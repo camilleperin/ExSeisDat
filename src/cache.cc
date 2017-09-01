@@ -12,6 +12,8 @@
 
 namespace PIOL {
 //TODO: Generalise this for parameters and traces
+//Currently this only works by caching all parameters, rather than parameters for a subset of traces, and does
+//not currently read any traces
 std::shared_ptr<TraceBlock> Cache::getCache(std::shared_ptr<File::Rule> rule, FileDeque & desc, bool cPrm, bool cTrc)
 {
     auto it = std::find_if(cache.begin(), cache.end(), [desc] (const CacheElem & elem) -> bool { return elem.desc == desc; });
@@ -33,6 +35,8 @@ std::shared_ptr<TraceBlock> Cache::getCache(std::shared_ptr<File::Rule> rule, Fi
         for (auto & f : desc)
         {
             f->ifc->readParam(f->ilst.size(), f->ilst.data(), prm.get(), loff);
+
+            //these indexes are required for features such as the multi-file sort
             for (size_t i = 0LU; i < f->ilst.size(); i++)
             {
                 File::setPrm(loff+i, Meta::gtn, off + loff + f->ilst[i], prm.get());
@@ -64,6 +68,10 @@ std::shared_ptr<TraceBlock> Cache::getCache(std::shared_ptr<File::Rule> rule, Fi
     return it->block;
 }
 
+//An idea I had was to integrate this into a new class in File::Cache :: public File::ReadInterface {};, so that multiple derived classes
+//of File::Interface can be grouped together and accessed as a single File::ReadInterface itself. Thus making caching very powerful
+//in that it provides an interchangeable use as with uncached File::ReadSEGY. Read/Write capabilities could also be simulated
+//by the use of multiple files
 std::vector<size_t> Cache::getOutputTrace(FileDeque & desc, csize_t offset, csize_t sz, File::Param * prm)
 {
     std::vector<size_t> final;

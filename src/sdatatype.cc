@@ -38,7 +38,6 @@ uint32_t toint(const float f)
 }
 
 //TODO: Haven't done anything for underflow, overflow or nans
-//TODO: Not extensively tested yet
 float convertIBMtoIEEE(const float f, bool bigEndian)
 {
     uint32_t i = toint(f);

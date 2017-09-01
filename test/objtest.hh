@@ -31,15 +31,14 @@ class MockData : public Data::Interface
 
     MOCK_CONST_METHOD0(getFileSz, size_t(void));
     MOCK_CONST_METHOD3(read, void(csize_t, csize_t, uchar *));
-    MOCK_CONST_METHOD5(read, void(csize_t, csize_t, csize_t, csize_t, uchar *));
+    MOCK_CONST_METHOD5(read, std::unique_ptr<Data::AsyncDataWait>(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d));
     MOCK_CONST_METHOD4(read, void(csize_t, csize_t, csize_t *, uchar *));
     MOCK_CONST_METHOD3(write, void(csize_t, csize_t, const uchar *));
-    MOCK_CONST_METHOD5(write, void(csize_t, csize_t, csize_t, csize_t, const uchar *));
+    MOCK_CONST_METHOD5(write, std::unique_ptr<Data::AsyncDataWait>(csize_t, csize_t, csize_t, csize_t, const uchar *));
     MOCK_CONST_METHOD4(write, void(csize_t, csize_t, csize_t *, const uchar *));
     // TODO: This method is not tested
     MOCK_CONST_METHOD1(setFileSz, void(csize_t));
 
-    MOCK_CONST_METHOD5(aread, std::unique_ptr<Data::AsyncDataWait>(csize_t offset, csize_t bsz, csize_t osz, csize_t sz, uchar * d));
 };
 
 enum class Block
