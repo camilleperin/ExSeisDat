@@ -1,7 +1,8 @@
-GTEST_DIR=../googletest/googletest
-GMOCK_DIR=../googletest/googlemock
+GT_PATH= ../googletest
+GTEST_DIR= $(GT_PATH)/googletest
+GMOCK_DIR= $(GT_PATH)/googlemock
 GOOGLE_OBJ=gmock-all.o  gtest-all.o
-TEST_FRAM=-I../googletest/googletest/include/ -I../googletest/googlemock/include/
+TEST_FRAM=-I $(GT_PATH)/googletest/include/ -I $(GT_PATH)/googlemock/include/
 LOCAL_INC_FOLDER=-I../src/ $(TEST_FRAM)
 OBJDIR=obj
 LIB_IPIOL=ipiol
