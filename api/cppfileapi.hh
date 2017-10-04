@@ -1,6 +1,6 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
  *   \date Autumn 2016
  *   \brief

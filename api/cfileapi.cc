@@ -1,6 +1,6 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
+ *   \author Cathal O Broin - ruairi.short@ichec.ie  - first commit
  *   \copyright TBD. Do not distribute
  *   \date December 2016
  *   \brief
@@ -17,6 +17,8 @@
 #include "share/api.hh"
 #include "flow/set.hh"
 #include "flow.h"
+#include "share/decomp.hh"
+#include "file/file.hh"
 
 using namespace PIOL;
 
@@ -335,6 +337,19 @@ void getMinMax(ExSeisHandle piol, size_t offset, size_t sz, Meta m1, Meta m2, co
     getMinMax(*piol->piol, offset, sz, m1, m2, static_cast<const File::Param *>(prm->param), minmax);
 }
 
+Extent decomposeFile(ExSeisHandle piol, ExSeisRead f)
+{
+    auto dec = decompose(*piol->piol, *f->file);
+    Extent out = {.start = dec.first, .sz = dec.second};
+    return out;
+}
+
+Extent decompose(size_t sz, size_t numRank, size_t rank)
+{
+    auto dec = PIOL::decompose(sz, numRank, rank);
+    Extent out = {.start = dec.first, .sz = dec.second};
+    return out;
+}
 //////////////////////////////////////SEGSZ///////////////////////////////////
 size_t getSEGYTextSz()
 {

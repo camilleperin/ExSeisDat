@@ -1,6 +1,6 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
  *   \date Summer 2016
  *   \brief
@@ -24,6 +24,11 @@ typedef struct ExSeisWriteWrapper * ExSeisWrite;//!< A wrapper around a File Lay
 typedef struct RuleWrapper * RuleHdl;           //!< A wrapper around a File Layer pointer
 typedef struct ParamWrapper * CParam;           //!< A wrapper around a File Layer pointer
 
+typedef struct
+{
+    size_t start;   //!< The starting location of the offset
+    size_t sz;      //!< The size of the decomposed block
+} Extent;
 /*
  * PIOL calls. Non-file specific
  */
@@ -211,6 +216,25 @@ void cpyPrm(size_t i, const CParam src, size_t j, CParam dst);
  *  \param[out] minmax Set \c minmax to structs corresponding to the minimum x, maximum x, minimum y, maximum y in that order.
  */
 extern void getMinMax(ExSeisHandle piol, size_t offset, size_t sz, Meta m1, Meta m2, const CParam prm, CoordElem * minmax);
+
+/*!Perform a decomposition of traces so that the load is optimally balanced.
+ *  \param[in] piol The piol object
+ *  \param[in] f A read file object. This is used to find the number of traces.
+ *  \return Return a pair, the first element is the offset for the local process,
+ *          the second is the size for the local process.
+ */
+extern Extent decomposeFile(ExSeisHandle piol, ExSeisRead f);
+
+/*! Function which takes the size of a problem, the number of ranks to
+ *  decompose the problem over and the particular local rank for the function call.
+ *  \param[in] sz The size of the problem.
+ *  \param[in] nrank The total number of ranks.
+ *  \param[in] rank The rank during the function call, generally the rank of the calling
+ *             MPI process.
+ *  \return Return an extent, a starting point (generally for a 'for' loop) and the number
+ *          of iterations.
+ */
+extern Extent decompose(size_t sz, size_t nrank, size_t rank);
 
 /*
  * Opening and closing files
