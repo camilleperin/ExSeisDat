@@ -1,10 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
  *   \date December 2016
- *   \brief
- *   \details Functions etc for C++ API
+ *   \brief Functions etc for C++ API
+ *   \details Functions, namespaces, and structures for C++ ExSeisPIOL API
  *//*******************************************************************************************/
 #include "cppfileapi.hh"
 #include "global.hh"

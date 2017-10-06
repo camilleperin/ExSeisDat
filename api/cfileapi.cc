@@ -3,8 +3,8 @@
  *   \author Cathal O Broin - ruairi.short@ichec.ie  - first commit
  *   \copyright TBD. Do not distribute
  *   \date December 2016
- *   \brief
- *   \details Functions etc for C11 API
+ *   \brief Functions etc for C11 API
+ *   \details Wrappers for the functions and struturtes for the C11 API.
  *//*******************************************************************************************/
 #include "global.hh"
 #include "cfileapi.h"

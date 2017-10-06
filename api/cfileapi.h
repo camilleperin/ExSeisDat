@@ -3,8 +3,9 @@
  *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
  *   \date Summer 2016
- *   \brief
- *   \details Primary C11 API header
+ *   \brief Primary ExSeisPIOL C11 API header
+ *   \details Header for the C11 ExSeisPIOL API; must be included by end users in code to call
+ *   ExSeisPIOL functions
  *//*******************************************************************************************/
 #ifndef PIOLCFILEAPI_INCLUDE_GUARD
 #define PIOLCFILEAPI_INCLUDE_GUARD

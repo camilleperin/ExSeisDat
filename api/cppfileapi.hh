@@ -3,8 +3,9 @@
  *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
  *   \date Autumn 2016
- *   \brief
- *   \details Primary C++ API header
+ *   \brief Primary C++ API header
+ *   \details Header for C++ ExSeisPIOL API; should be included in end user code in order to
+ *   call ExSeisPIOL commands
  *//*******************************************************************************************/
 #ifndef PIOLCPPFILEAPI_INCLUDE_GUARD
 #define PIOLCPPFILEAPI_INCLUDE_GUARD

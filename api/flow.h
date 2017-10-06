@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \copyright TBD. Do not distribute
  *   \date December 2016
- *   \brief
- *   \details C11 Set API header
+ *   \brief C11 ExSeisFlow (Set Layer) API header
+ *   \details Header for the C11 ExSeisFlow API; must be included in end user code to access
+ *   ExSeisFlow library.
  *//*******************************************************************************************/
 #ifndef PIOLCSET_INCLUDE_GUARD
 #define PIOLCSET_INCLUDE_GUARD
