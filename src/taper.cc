@@ -1,9 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Meghan Fisher - meghan.fisher@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Meghan Fisher - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date April 2017
  *   \brief The taper operation
+ *   \details Applies a one or two tailed taper to a set of traces; taper functions include a
+ *   linear taper, cosine taper, and cosine squared taper as well as a custum taper.
  *//*******************************************************************************************/
 #include <assert.h>
 #include "global.hh"

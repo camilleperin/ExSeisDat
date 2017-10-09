@@ -1,10 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief
- *   \details
+ *   \brief MPI Status function
+ *   \details Function prints any MPI Errors or Status updates
  *//*******************************************************************************************/
 #include "share/mpi.hh"
 namespace PIOL {

@@ -1,10 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief
- *   \details ReadSEGY functions
+ *   \brief ReadSEGY functions
+ *   \details Class and functions to read parameters and trace data from SEGY files.
  *//*******************************************************************************************/
 #include "global.hh"
 #include "file/filesegy.hh"

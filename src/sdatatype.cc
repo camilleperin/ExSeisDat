@@ -1,10 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date August 2016
- *   \brief This file performs a variety of bit operations and conversions on datatypes
- *   \details
+ *   \brief Bit opperation functions
+ *   \details This file performs a variety of bit operations and conversions on datatypes
  *//*******************************************************************************************/
 #include "global.hh"
 #include "share/datatype.hh"

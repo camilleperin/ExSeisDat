@@ -1,12 +1,14 @@
 /************************************************************************ *******************//*!
  *   \file
- *   \author Meghan Fisher - meghan.fisher@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Meghan Fisher - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date May 2017
  *   \brief The Temporal Bandpass operation
- *   \details The algorithm finds some type of moving average (RMS, RMS with Triangle window,
- *   Mean Abs, and Median) to trace amplitudes for visualization purposes. It can be applied to
- *   traces independantly or applies the same scalar to all traces at the same height.
+ *   \details The temporal bandpass filter applies filter to individual traces. It uses an IIR
+ *   Butterworth filter that uses a bilateral transform to move filter from analgue to digitial
+ *   domain, avoiding filter instablity. It can apply a bandpass, bandstop, lowpass, and
+ *   highpass filter in either the time domain or frequency domain. End users either specify
+ *   the pass frequency and stop frequency corner or the stop frequncy courner and filter order. 
 *//*******************************************************************************************/
 #include <vector>
 #include <algorithm>

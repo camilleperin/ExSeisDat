@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief
- *   \details
+ *   \brief Functions for reading files
+ *   \details This file contains functions parameters from file agnostically and other key header
+ *   parametes.
  *//*******************************************************************************************/
 #include "file/file.hh"
 namespace PIOL { namespace File {

@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date October 2016
- *   \brief
- *   \details
+ *   \brief Dynamic File Reading Operations
+ *   \details This file contains functions to dyanmically access file metadata. Rules for
+ *   acessing parameters are file agnositic.
  *//*******************************************************************************************/
 #include <limits>
 #include <cstring>

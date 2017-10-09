@@ -1,19 +1,15 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date November 2016
- *   \brief The Sort Operation
- *   \details The algorithm used is a nearest neighbour approach where at each iteration
- *   the lowest valued metadata entries are moved to adjacent processes with a lower rank and a
- *   sort is performed. After the sort the highest entries are moved again to the process with a
- *   higher rank. If each process has the same traces it started off with, the sort
- *   is complete.
+ *   \brief The Min/Max Operation
+ *   \details The operation to find the mimimum and maximum value of a parameter in a set of
+ *   traces.
 *//*******************************************************************************************/
 #include <algorithm>
 #include <iterator>
 #include <functional>
-
 #include "global.hh"
 #include "file/dynsegymd.hh"
 #include "ops/minmax.hh"

@@ -1,7 +1,7 @@
 /************************************************************************ *******************//*!
  *   \file
- *   \author Meghan Fisher - meghan.fisher@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Meghan Fisher - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date May 2017
  *   \brief The Automatic Gain Control Operation
  *   \details The algorithm finds some type of moving average (RMS, RMS with Triangle window,

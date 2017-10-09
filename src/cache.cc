@@ -1,17 +1,14 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date May 2017
- *   \brief
+ *   \brief Functions to determine what  
  *   \details
  *//*******************************************************************************************/
 #include "flow/cache.hh"
 #include "share/api.hh"
 #include "file/dynsegymd.hh"
-
-//TODO: Remove when all options implemented
-#include <iostream>
 
 namespace PIOL {
 //TODO: Generalise this for parameters and traces

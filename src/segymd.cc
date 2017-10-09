@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date October 2016
- *   \brief
- *   \details
+ *   \brief SEGY trace metadata functions
+ *   \detailis Functions used when accessing individual trace header data, including removing
+ *   and applying a scaling factor to data.
  *//*******************************************************************************************/
 #include <cmath>
 #include "global.hh"

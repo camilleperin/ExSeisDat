@@ -1,10 +1,12 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date November 2016
- *   \brief
- *   \details
+ *   \brief ExSeisFlow (Set Layer) functions
+ *   \details This file contains the externally facing ExSeisFlow functions, structure for
+ *   perfoming operations and exporting them as well as queuing functions to optimize the reading
+ *   and writing of traces/parameters.
  *//*******************************************************************************************/
 #include <glob.h>
 #include <assert.h>
@@ -12,8 +14,6 @@
 #include <numeric>
 #include <map>
 #include <tuple>
-//TODO: remove this when all errors are addressed
-#include <iostream>
 #include "global.hh"
 #include "share/misc.hh"    //For getSort..
 #include "flow/set.hh"
@@ -524,7 +524,7 @@ void Set::sort(std::shared_ptr<File::Rule> r, CompareP sortFunc)
         if (piol->comm->min(in->prm->size()) < 3LU) //TODO: It will eventually be necessary to support this use case.
         {
             piol->log->record("", Log::Layer::Set, Log::Status::Error,
-                "Email cathal@ichec.ie if you want to sort -very- small sets of files with multiple processes.", Log::Verb::None);
+                "Email ruairi.short@ichec.ie if you want to sort -very- small sets of files with multiple processes.", Log::Verb::None);
             return std::vector<size_t>{};
         }
         else

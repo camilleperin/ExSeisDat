@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author cathal o broin - cathal@ichec.ie - first commit
+ *   \author cathal o broin - ruairi.short@ichec.ie - first commit
  *   \copyright tbd. do not distribute
  *   \date july 2016
- *   \brief
- *   \details
+ *   \brief MPI communications
+ *   \details This file contains functions that allow for MPI communication between processors.
+ *   These functions are internally facing and not accessed by end user.
  *//*******************************************************************************************/
 #include "global.hh"
 #include "anc/mpi.hh"

@@ -1,10 +1,14 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date May 2017
- *   \brief
- *   \details
+ *   \brief Decompostion functions
+ *   \details File contains functions to decompose traces and/or parameters across the number of
+ *   processors, providing the end user where each processor should start reading data and how
+ *   much data should be read. This function can be used by end users when using the ExSeisPIOL
+ *   and need to know Decomposition of I/O across processes. It is used internally by the
+ *   ExSeisFlow workflow.
  *//*******************************************************************************************/
 #include "share/decomp.hh"
 #include "file/file.hh"

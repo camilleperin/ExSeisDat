@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief
- *   \details
+ *   \brief Parallel I/O Functions
+ *   \details The file contains the functions in the data layer that perform the actual parallel
+ *   I/O. This is where MPI-IO is actually called.
  *//*******************************************************************************************/
 #include <assert.h>
 #include <algorithm>

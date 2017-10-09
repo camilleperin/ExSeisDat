@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief
- *   \details
+ *   \brief Object layer
+ *   \details This file contains functions to construct and destruct the object layer, as well
+ *   the functions to get data from trace headers and file headers.
  *//*******************************************************************************************/
 #include "object/objsegy.hh"
 #include "data/datampiio.hh"

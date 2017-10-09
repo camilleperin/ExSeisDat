@@ -1,9 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
  *   \date May 2017
- *   \brief
- *   \details
+ *   \brief Gather functions
+ *   \details Functions for finding traces that belong in specific gathers. Gathers can be
+ *   inline or crossline
  *//*******************************************************************************************/
 #include "share/decomp.hh"
 #include "ops/gather.hh"

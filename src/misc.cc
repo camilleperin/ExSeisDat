@@ -1,8 +1,9 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date March 2017
+ *   \brief Miscellanious functions
  *   \details For small functions outside the library that don't make sense anywhere else.
 *//*******************************************************************************************/
 #include "share/misc.hh"

@@ -1,7 +1,7 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date November 2016
  *   \brief The Sort Operation
  *   \details The algorithm used is a nearest neighbour approach where at each iteration
