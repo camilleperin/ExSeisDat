@@ -1,10 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief A Conversion function to convert from EBCDIC to ASCII
- *   \details
+ *   \brief Bit Conversion function
+ *   \details Converts data from EBCDIC to ASCII
  *//*******************************************************************************************/
 #ifndef PIOLFILEICONV_INCLUDE_GUARD
 #define PIOLFILEICONV_INCLUDE_GUARD

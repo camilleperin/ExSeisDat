@@ -1,10 +1,11 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date October 2016
- *   \brief
- *   \details
+ *   \brief SEGY specific functions
+ *   \details This file contains functions for accessing SEGY specific headers. It also provides
+ *   the functions to scale or descale location/depth values in SEGY files.
  *//*******************************************************************************************/
 #ifndef PIOLFILESEGYMD_INCLUDE_GUARD
 #define PIOLFILESEGYMD_INCLUDE_GUARD

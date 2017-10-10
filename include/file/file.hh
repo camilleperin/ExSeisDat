@@ -1,7 +1,7 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date January 2017
  *   \brief The File layer interface
  *   \details The File layer interface is a base class which specific File implementations

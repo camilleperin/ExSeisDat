@@ -1,9 +1,9 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date July 2016
- *   \brief
+ *   \brief Global type and classes
  *   \details Insert trivial typdefs etc into this file which will be used throughout the
  *            code-base.
  *//*******************************************************************************************/

@@ -1,9 +1,10 @@
 /*******************************************************************************************//*!
  *   \file
- *   \author Cathal O Broin - cathal@ichec.ie - first commit
- *   \copyright TBD. Do not distribute
+ *   \author Cathal O Broin - ruairi.short@ichec.ie - first commit
+ *   \copyright LGPL v3
  *   \date September 2016
  *   \brief The ExSeis PIOL C++ API
+ *   \details Constructors and destructor for the ExSeisPIOL object.
  *//*******************************************************************************************/
 #ifndef PIOLPIOL_INCLUDE_GUARD
 #define PIOLPIOL_INCLUDE_GUARD
