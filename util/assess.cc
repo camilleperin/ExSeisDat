@@ -13,14 +13,15 @@
 #include <regex>
 using namespace PIOL;
 char * rmFormat(std::string str, std::string ending)
+//TODO: Add other file formats as supported
 {
     std::string strLwr = str;
     std::transform(str.begin(), str.end(), strLwr.begin(), ::tolower);
-   if (strLwr.substr(strLwr.length() - 4) == ".sgy")
+    if (strLwr.substr(strLwr.length() - 4) == ".sgy")
         str = str.substr(0, str.length()-4);
-   else if (strLwr.substr(strLwr.length() - 4) == ".segy")
+    else if (strLwr.substr(strLwr.length() - 5) == ".segy")
         str = str.substr(0, str.length()-5);
-    str += ending;
+    str =str +"{,"+ ending + "}";
     return (char *)str.c_str();
 }
 /*! Main function for assess.
@@ -36,14 +37,12 @@ int main(int argc, char ** argv)
         std::cout << "Too few arguments\n";
         return -1;
     }
-    //std::cout<<rmFormat()<<std::endl;
     ExSeis piol;
     for (size_t j = 1; j < argc; j++)
     {
         glob_t globs;
         std::cout << "Pattern: " << argv[j] << "\n";
-        int err = glob(rmFormat(std::string(argv[j]), "{.[sS][eE][gG][yY]}"), GLOB_BRACE | GLOB_TILDE | GLOB_MARK, NULL, &globs);
-        err += glob(rmFormat(std::string(argv[j]), "{.[sS][gG][yY]}"), GLOB_APPEND | GLOB_BRACE | GLOB_TILDE | GLOB_MARK, NULL, &globs);
+        int err = glob(rmFormat(std::string(argv[j]), ".[sS][eE][gG][yY], .[sS][gG][yY]"), GLOB_BRACE | GLOB_TILDE | GLOB_MARK, NULL, &globs);
         if (err)
             std::cout<<"No Files Found\n";
         else
@@ -62,8 +61,8 @@ int main(int argc, char ** argv)
                     std::cout << "-\tInc: " << file.readInc() << "\n";
                     std::cerr << "-\tText: " << file.readText() << "\n";
                 }
-            globfree(&globs);
-        }
+         }
+        globfree(&globs);
     }
     return 0;
 }
