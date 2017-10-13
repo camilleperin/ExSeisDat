@@ -9,10 +9,8 @@
  *//*******************************************************************************************/
 #include "cppfileapi.hh"
 #include <iostream>
-#include <string>
 #include <glob.h>
 #include <regex>
-#include <typeinfo>
 using namespace PIOL;
 char * rmFormat(std::string str, std::string ending)
 {
