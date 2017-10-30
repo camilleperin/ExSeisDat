@@ -6,7 +6,7 @@ DEP=depend
 DEPENDS:=$(patsubst %.c, %.dep, $(wildcard *.c)) $(patsubst %.cc, %.dep, $(wildcard *.cc))
 CURR_DEP:=$(wildcard $(DEP))
 CURR_DEPENDS:=$(wildcard $(DEPENDS))
-BIN = concatenate radon segsort versort fourdbin cropen creadwrite assess filemake makerep segy2kml minmax traceanalysis
+BIN = concatenate radon segsort versort fourdbin cropen creadwrite assess filemake makerep minmax traceanalysis
 CURR_BIN=$(wildcard $(BIN))
 
 %.dep: %.c
@@ -53,8 +53,6 @@ filemake: obj/filemake.cpo obj/sglobal.cpo
 makerep: obj/makerep.cpo obj/sglobal.cpo
 	$(CXX) $(IMELD_FLAG) $(CXXFLAGS) $+ -o $@ $(CXXLDFLAGS)
 minmax: obj/minmax.cpo obj/sglobal.cpo
-	$(CXX) $(CXXFLAGS) $+ -o $@ $(CXXLDFLAGS)
-segy2kml: obj/segy2kml.cpo
 	$(CXX) $(CXXFLAGS) $+ -o $@ $(CXXLDFLAGS)
 ifeq "$(CURR_DEP)" "$(DEP)"
 -include $(DEP)

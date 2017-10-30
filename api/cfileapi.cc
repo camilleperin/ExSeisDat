@@ -4,7 +4,7 @@
  *   \copyright TBD. Do not distribute
  *   \date December 2016
  *   \brief Functions etc for C11 API
- *   \details Wrappers for the functions and struturtes for the C11 API.
+ *   \details Wrappers for the functions and structures for the C11 API.
  *//*******************************************************************************************/
 #include "global.hh"
 #include "cfileapi.h"
@@ -152,6 +152,7 @@ void cpyPrm(size_t i, const CParam src, size_t j, CParam dst)
 }
 
 //////////////////PIOL////////////////////////////
+
 ExSeisHandle initMPIOL(void)
 {
     auto wrap = new PIOLWrapper;
@@ -350,7 +351,9 @@ Extent decompose(size_t sz, size_t numRank, size_t rank)
     Extent out = {.start = dec.first, .sz = dec.second};
     return out;
 }
+
 //////////////////////////////////////SEGSZ///////////////////////////////////
+
 size_t getSEGYTextSz()
 {
     return SEGSz::getTextSz();
@@ -374,6 +377,7 @@ size_t getSEGYParamSz(void)
 }
 
 ////////////////////////////////////SET/////////////////////////////////////////
+
 ExSeisSet initSet(ExSeisHandle piol, const char * ptrn)
 {
     auto wrap = new ExSeisSetWrapper;
@@ -424,6 +428,7 @@ void taper2TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn)
     auto lam = [func] (trace_t pos, trace_t rampLn) -> trace_t {return func(pos, rampLn);};
     s->set->taper(lam, nTailLft, nTailRt);
 }
+
 extern void AGC(ExSeisSet s, AGCType type, size_t window, float normR)
 {
     s->set->AGC(type, window, normR);
