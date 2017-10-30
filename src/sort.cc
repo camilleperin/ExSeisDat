@@ -12,6 +12,7 @@
 *//*******************************************************************************************/
 #include <algorithm>
 #include <numeric>
+#include <iostream>
 #include "global.hh"
 #include "ops/sort.hh"
 #include "file/dynsegymd.hh"
@@ -232,30 +233,39 @@ CompareP getComp(SortType type)
     {
         default :
         case SortType::SrcRcv :
+            std::cout<< "SrcRcv \n";
             return lessSrcRcv;
         break;
         case SortType::SrcOff :
+            std::cout<< "SrcOff \n";
             return lessSrcOff<true>;
         break;
         case SortType::SrcROff :
+            std::cout<< "SrcROff \n";
             return lessSrcOff<false>;
         break;
         case SortType::RcvOff :
+            std::cout<< "RcvOff \n";
             return lessRcvOff<true>;
         break;
         case SortType::RcvROff :
+            std::cout<< "RcvROff \n";
             return lessRcvOff<false>;
         break;
         case SortType::LineOff :
+            std::cout<< "LineOff \n";
             return lessLineOff<true>;
         break;
         case SortType::LineROff :
+            std::cout<< "LineROff \n";
             return lessLineOff<false>;
         break;
         case SortType::OffLine :
+            std::cout<< "OffLine \n";
             return lessOffLine<true>;
         break;
         case SortType::ROffLine :
+            std::cout<< "ROffLine \n";
             return lessOffLine<false>;
         break;
     }

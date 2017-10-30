@@ -83,12 +83,14 @@ int main(int argc, char ** argv)
             break;
         }
     assert(pattern != "" && outprefix != "");
-
+    std::cout<<pattern<<std::endl;
     Set set(piol, pattern);
+    std::cout<<msg<<std::endl;
     set.text(msg);
+    set.summary();
     if (prompt)
     {
-        set.summary();
+//        set.summary();
         doPrompt(piol);
     }
     set.output(outprefix);

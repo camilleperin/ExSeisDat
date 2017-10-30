@@ -14,6 +14,7 @@
 #include <numeric>
 #include <map>
 #include <tuple>
+#include <iostream>
 #include "global.hh"
 #include "share/misc.hh"    //For getSort..
 #include "flow/set.hh"

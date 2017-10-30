@@ -145,6 +145,9 @@ bool Rule::addRule(Meta m)
         case Meta::TransUnit :
             addShort(m, Tr::TransUnit);
         break;
+        case Meta::ScaleCoord :
+            addShort(m, Tr::ScaleCoord);
+        break;
         default :
         return false;
         break;    //Non-default
@@ -206,6 +209,7 @@ Rule::Rule(bool full, bool defaults, bool extra)
         addRule(Meta::il);
         addRule(Meta::xl);
         addRule(Meta::tn);
+        addRule(Meta::ScaleCoord);
     }
 
     if (extra)

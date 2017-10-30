@@ -403,16 +403,27 @@ void sortSet(ExSeisSet s, SortType type)
     s->set->sort(type);
 }
 
-void taper2Tail(ExSeisSet s, TaperType type, size_t ntpstr, size_t ntpend)
+void taper2Tail(ExSeisSet s, TaperType type, size_t nTailLft, size_t nTailRt)
 {
-    s->set->taper(type, ntpstr, ntpend);
+    s->set->taper(type, nTailLft, nTailRt);
 }
 
-void taper1Tail(ExSeisSet s, TaperType type, size_t ntpstr)
+void taper1Tail(ExSeisSet s, TaperType type, size_t nTailLft)
 {
-    s->set->taper(type, ntpstr);
+    s->set->taper(type, nTailLft);
 }
 
+void taper1TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft)
+{
+    auto lam = [func] (trace_t pos, trace_t rampLn) -> trace_t {return func(pos, rampLn);};
+    s->set->taper(lam, nTailLft);
+}
+
+void taper2TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft, size_t nTailRt)
+{
+    auto lam = [func] (trace_t pos, trace_t rampLn) -> trace_t {return func(pos, rampLn);};
+    s->set->taper(lam, nTailLft, nTailRt);
+}
 extern void AGC(ExSeisSet s, AGCType type, size_t window, float normR)
 {
     s->set->AGC(type, window, normR);

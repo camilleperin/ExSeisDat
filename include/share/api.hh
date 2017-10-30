@@ -50,6 +50,7 @@ typedef enum
     yRcv,       //!< The receiver y coordinate
     xCmp,       //!< The CMP x coordinate
     yCmp,       //!< The CMP y coordinate
+    ScaleCoord, //!< Scaling factor for coordinates
     il,         //!< The inline number
     xl,         //!< The crossline number
     TransUnit,  //!< Unit system for transduction constant

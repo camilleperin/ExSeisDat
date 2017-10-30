@@ -8,6 +8,7 @@
  *   and applying a scaling factor to data.
  *//*******************************************************************************************/
 #include <cmath>
+#include <iostream>
 #include "global.hh"
 #include "file/segymd.hh"
 

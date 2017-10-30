@@ -21,10 +21,10 @@ void writeContig(ExSeis piol, File::WriteDirect * file, size_t offset, size_t nt
         for (size_t j = 0; j < rblock; j++)
         {
             float k = nhalf - std::abs(-nhalf + long(offset+i+j));
-            setPrm(j, Meta::xSrc, 1600.0 + k, &prm);
-            setPrm(j, Meta::ySrc, 2400.0 + k, &prm);
-            setPrm(j, Meta::xRcv, 100000.0 + k, &prm);
-            setPrm(j, Meta::yRcv, 3000000.0 + k, &prm);
+            setPrm(j, Meta::xSrc, 352.25 + k, &prm);
+            setPrm(j, Meta::ySrc, 5914683.6 + k, &prm);
+            setPrm(j, Meta::xRcv, 100.0 + k, &prm);
+            setPrm(j, Meta::yRcv, 30.0 + k, &prm);
             setPrm(j, Meta::xCmp, 10000.0 + k, &prm);
             setPrm(j, Meta::yCmp, 4000.0 + k, &prm);
             setPrm(j, Meta::il, 2400 + k, &prm);
@@ -86,7 +86,7 @@ void writeRandom(ExSeisPIOL * piol, File::WriteDirect * file, size_t nt, size_t 
         for (size_t j = 0; j < rblock; j++)
         {
             float k = nhalf - std::abs(-nhalf + long(offset[i+j]));
-            setPrm(j, Meta::xSrc, 1600.0 + k, &prm);
+            setPrm(j, Meta::xSrc, 1600000.0 + k, &prm);
             setPrm(j, Meta::ySrc, 2400.0 + k, &prm);
             setPrm(j, Meta::xRcv, 100000.0 + k, &prm);
             setPrm(j, Meta::yRcv, 3000000.0 + k, &prm);

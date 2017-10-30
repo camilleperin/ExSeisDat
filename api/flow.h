@@ -46,17 +46,35 @@ extern void sortSet(ExSeisSet s, SortType type);
 /*! Preform 2 tailed taper on a set of traces
  * \param[in] s A handle for the set
  * \param[in] type The type of taper to be applied to traces.
- * \param[in] ntpstr The length of left-tail taper ramp.
- * \param[in] ntpend The length of right-tail taper ramp.
+ * \param[in] nTailLft The length of left-tail taper ramp.
+ * \param[in] nTailRt The length of right-tail taper ramp.
  */
-extern void taper2Tail(ExSeisSet s, TaperType type, size_t ntpstr, size_t ntpend);
+extern void taper2Tail(ExSeisSet s, TaperType type, size_t nTailLft, size_t nTailRt);
 
 /*! Preform 1 tailed taper on a set of traces
  * \param[in] s A handle for the set
  * \param[in] type The type of taper to be applied to traces.
- * \param[in] ntpstr The length of taper ramp.
+ * \param[in] nTailLft The length of taper ramp.
  */
-extern void taper1Tail(ExSeisSet s, TaperType type, size_t ntpstr);
+extern void taper1Tail(ExSeisSet s, TaperType type, size_t nTailLft);
+
+/*! Preform 1 tailed taper with a custom taper function  on a set of traces
+ * \param[in] s A handle for the set
+ * \param[in] func The type of taper to be applied to traces.
+ * \param[in] pos The position in the trace for taper function
+ * \param[in] rampLn The length of the taper for taper function
+ * \param[in] nTailLft The length of taper ramp.
+ */
+extern void taper1TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft)
+/*! Preform 2 tailed taper with a custom taper function  on a set of traces
+ * \param[in] s A handle for the set
+ * \param[in] func The type of taper to be applied to traces.
+ * \param[in] pos The position in the trace for taper function
+ * \param[in] rampLn The length of the taper for taper function
+ * \param[in] nTailLft The length of the left taper ramp.
+ * \param[in] nTailRt The length of the right taper ramp
+ */
+extern void taper2TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft, size_t nTailRt)
 
 /*! The number of traces in the input files
  *  \param[in] s The set handle

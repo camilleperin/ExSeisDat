@@ -27,9 +27,9 @@ int main(int argc, char ** argv)
                 std::cerr << "One of the command line arguments is invalid\n";
             break;
         }
-
+    std::cout<<"pre assert"<<std::endl;
     assert(name1.size() && name2.size());
-
+    std::cout<<"assert pass"<<std::endl;
     Set set(piol, name1, name2);
     set.sort(type);
     piol.isErr();

@@ -53,6 +53,7 @@ int main(int argc, char ** argv)
 
         std::cout << "il " << File::getPrm<size_t>(0LU, Meta::il, &prm) << std::endl;
         std::cout << "xl " << File::getPrm<size_t>(0LU, Meta::xl, &prm) << std::endl;
+        std::cout << "ScaleCoord " << File::getPrm<geom_t>(0LU, Meta::ScaleCoord, &prm) << std::endl;
     }
     return 0;
 }

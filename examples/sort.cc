@@ -10,7 +10,7 @@ using namespace PIOL;
 int main(void)
 {
     ExSeis piol;
-    Set set(piol, "/ichec/work/exseisdat/dat/10*/b*", "temp");
+    Set set(piol, "trace2, trace1", "temp");
     set.sort(SortType::OffLine);
     return 0;
 }
