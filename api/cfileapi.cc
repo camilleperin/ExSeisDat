@@ -351,7 +351,7 @@ Extent decompose(size_t sz, size_t numRank, size_t rank)
     return out;
 }
 //////////////////////////////////////SEGSZ///////////////////////////////////
-size_t getSEGYTextSz()
+size_t getSEGYTextSzv(void)
 {
     return SEGSz::getTextSz();
 }
@@ -447,6 +447,11 @@ void summarySet(ExSeisSet s)
 void addSet(ExSeisSet s, const char * name)
 {
     s->set->add(name);
+}
+
+void dropSet(ExSeisSet s)
+{
+    s->set->drop();
 }
 
 void sortCustomSet(ExSeisSet s, bool (* func)(const CParam prm, csize_t i, csize_t j))

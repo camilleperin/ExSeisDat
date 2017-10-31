@@ -66,6 +66,7 @@ extern void taper1Tail(ExSeisSet s, TaperType type, size_t nTailLft);
  * \param[in] nTailLft The length of taper ramp.
  */
 extern void taper1TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft)
+
 /*! Preform 2 tailed taper with a custom taper function  on a set of traces
  * \param[in] s A handle for the set
  * \param[in] func The type of taper to be applied to traces.
@@ -110,6 +111,11 @@ extern void summarySet(ExSeisSet s);
  *  \param[in] name The input name
  */
 extern void addSet(ExSeisSet s, const char * name);
+
+/*! Drop all files from the set without any output
+ *  \param[in] s The set handle
+ */
+extern void dropSet(ExSeisSet s);
 
 /*! Sort the set using a custom comparison function
  *  \param[in] s A handle for the set.
