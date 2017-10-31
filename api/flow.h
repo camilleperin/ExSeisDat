@@ -43,7 +43,7 @@ extern void getMinMaxSet(ExSeisSet s, Meta m1, Meta m2, CoordElem * minmax);
  */
 extern void sortSet(ExSeisSet s, SortType type);
 
-/*! Preform 2 tailed taper on a set of traces
+/*! Perform 2 tailed taper on a set of traces
  * \param[in] s A handle for the set
  * \param[in] type The type of taper to be applied to traces.
  * \param[in] nTailLft The length of left-tail taper ramp.
@@ -51,23 +51,29 @@ extern void sortSet(ExSeisSet s, SortType type);
  */
 extern void taper2Tail(ExSeisSet s, TaperType type, size_t nTailLft, size_t nTailRt);
 
-/*! Preform 1 tailed taper on a set of traces
+/*! Perform 1 tailed taper on a set of traces
  * \param[in] s A handle for the set
  * \param[in] type The type of taper to be applied to traces.
  * \param[in] nTailLft The length of taper ramp.
  */
 extern void taper1Tail(ExSeisSet s, TaperType type, size_t nTailLft);
 
-/*! Preform 1 tailed taper with a custom taper function  on a set of traces
+/*! Perform 1 tailed taper with a custom taper function  on a set of traces
  * \param[in] s A handle for the set
  * \param[in] func The type of taper to be applied to traces.
  * \param[in] pos The position in the trace for taper function
  * \param[in] rampLn The length of the taper for taper function
  * \param[in] nTailLft The length of taper ramp.
  */
+<<<<<<< HEAD
 extern void taper1TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft)
 
 /*! Preform 2 tailed taper with a custom taper function  on a set of traces
+=======
+extern void taper1TailCustom(ExSeisSet s, float (* func)(float pos, float rampLn), size_t nTailLft);
+
+/*! Perform 2 tailed taper with a custom taper function  on a set of traces
+>>>>>>> 29032b308134aa66d72addda03393c3feeb5ca53
  * \param[in] s A handle for the set
  * \param[in] func The type of taper to be applied to traces.
  * \param[in] pos The position in the trace for taper function
@@ -75,7 +81,7 @@ extern void taper1TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t 
  * \param[in] nTailLft The length of the left taper ramp.
  * \param[in] nTailRt The length of the right taper ramp
  */
-extern void taper2TailCustom(ExSeisSet s, trace_t (* func)(trace_t pos, trace_t rampLn), size_t nTailLft, size_t nTailRt)
+extern void taper2TailCustom(ExSeisSet s, float (* func)(float pos, float rampLn), size_t nTailLft, size_t nTailRt);
 
 /*! The number of traces in the input files
  *  \param[in] s The set handle
