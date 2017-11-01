@@ -453,11 +453,6 @@ void addSet(ExSeisSet s, const char * name)
     s->set->add(name);
 }
 
-void dropSet(ExSeisSet s)
-{
-    s->set->drop();
-}
-
 void sortCustomSet(ExSeisSet s, bool (* func)(const CParam prm, csize_t i, csize_t j))
 {
     auto lam = [func] (const File::Param * prm, csize_t i, csize_t j) -> bool
