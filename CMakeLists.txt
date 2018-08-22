@@ -78,8 +78,13 @@ set(
 )
 
 set(
+    EXSEISDAT_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE STRING
+    "The install directory for ExSeisDat headers."
+)
+
+set(
     EXSEISDAT_INSTALL_DOCDIR ${CMAKE_INSTALL_DOCDIR} CACHE STRING
-    "The install directory for ExSeisDat libraries."
+    "The install directory for ExSeisDat documentation."
 )
 
 
@@ -117,9 +122,6 @@ find_package(MPI REQUIRED)
 # Set MPI C/CXX flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_C_COMPILE_FLAGS}")
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${MPI_C_COMPILE_FLAGS}")
-
-# Include the MPI directories
-include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
 
 # Set the MPI linker flags
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MPI_C_LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
@@ -167,12 +169,6 @@ find_package_handle_standard_args(FFTW3_LIBRARIES DEFAULT_MSG FFTW3_LIBRARIES)
 if(NOT FFTW3_LIBRARIES)
     message(FATAL_ERROR "Unable to find FFTW3 libraries!")
 endif(NOT FFTW3_LIBRARIES)
-
-
-# Setup header includes ########################################################
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(SYSTEM ${FFTW3_INCLUDES})
 
 
 # Setup the exseisdat library ##################################################
@@ -231,9 +227,21 @@ set_target_properties(
     exseisdat
     PROPERTIES COMPILE_DEFINITIONS EXSEISDAT_MPIIO_COLLECTIVES
 )
+
+# Setup header includes ########################################################
+
 target_include_directories(
     exseisdat BEFORE
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_include_directories(
+    exseisdat SYSTEM
+    PUBLIC ${MPI_C_INCLUDE_PATH} ${FFTW3_INCLUDES}
+)
+target_include_directories(
+    exseisdat PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 
@@ -272,10 +280,18 @@ endif(EXSEISDAT_BUILD_DOCUMENTATION)
 
 # Install libexseisdat
 install(
-    TARGETS exseisdat
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    TARGETS exseisdat EXPORT exseisdat
+    RUNTIME DESTINATION ${EXSEISDAT_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${EXSEISDAT_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${EXSEISDAT_INSTALL_LIBDIR}
 )
 
-# TODO: setup install for headers
+install(
+    EXPORT exseisdat
+    DESTINATION ${EXSEISDAT_INSTALL_LIBDIR}/exseisdat
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION ${EXSEISDAT_INSTALL_INCLUDEDIR}
+)
