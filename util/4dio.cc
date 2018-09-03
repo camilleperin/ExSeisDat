@@ -79,7 +79,7 @@ std::unique_ptr<Coords> getCoords(
 
     // Any extra readParam calls the particular process needs
     for (size_t i = 0; i < extra; i++) {
-        file.readParam(size_t(0), size_t(0), nullptr);
+        file.readParam(size_t(0), size_t(0), &prm);
     }
     cmsg(piol.get(), "getCoords sort");
 
@@ -156,11 +156,11 @@ std::unique_ptr<Coords> getCoords(
                     j, PIOL_META_xl, &prm2);
             }
         }
-    }
 
-    // Any extra readParam calls the particular process needs
-    for (size_t i = 0; i < extra; i++) {
-        file.readParamNonContiguous(0LU, nullptr, nullptr);
+        // Any extra readParam calls the particular process needs
+        for (size_t i = 0; i < extra; i++) {
+            file.readParamNonContiguous(0LU, sortlist.data(), &prm2);
+        }
     }
 
     // This barrier is necessary so that cmsg doesn't store an old MPI_Wtime().
@@ -248,8 +248,8 @@ void outputNonMono(
     }
 
     for (size_t i = 0; i < extra; i++) {
-        src.readTraceNonContiguous(size_t(0), nullptr, nullptr, nullptr);
-        dst.writeTrace(size_t(0), size_t(0), nullptr, nullptr);
+        src.readTraceNonContiguous(size_t(0), nullptr, trc.data(), &prm);
+        dst.writeTrace(size_t(0), size_t(0), trc.data(), &prm);
     }
 
     piol->comm->barrier();
