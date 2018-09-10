@@ -4,6 +4,7 @@
 #ifndef EXSEISDAT_UTILS_DISTRIBUTED_VECTOR_HH
 #define EXSEISDAT_UTILS_DISTRIBUTED_VECTOR_HH
 
+#include <cassert>
 #include <cstddef>
 #include <memory>
 

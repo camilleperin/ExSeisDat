@@ -13,6 +13,7 @@
 #include "ExSeisDat/PIOL/segy_utils.hh"
 #include "ExSeisDat/utils/encoding/number_encoding.hh"
 
+#include <cmath>
 #include <cstring>
 #include <limits>
 

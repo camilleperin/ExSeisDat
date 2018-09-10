@@ -5,6 +5,9 @@
 #ifndef EXSEISDAT_UTILS_MPI_MPI_MAX_ARRAY_LENGTH_HH
 #define EXSEISDAT_UTILS_MPI_MPI_MAX_ARRAY_LENGTH_HH
 
+#include <cstddef>
+#include <limits>
+
 namespace exseis {
 namespace utils {
 
