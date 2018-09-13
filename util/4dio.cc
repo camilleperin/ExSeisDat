@@ -159,7 +159,7 @@ std::unique_ptr<Coords> getCoords(
 
         // Any extra readParam calls the particular process needs
         for (size_t i = 0; i < extra; i++) {
-            file.readParamNonContiguous(0LU, sortlist.data(), &prm2);
+            file.readParamNonContiguous(0LU, nullptr, &prm2);
         }
     }
 
